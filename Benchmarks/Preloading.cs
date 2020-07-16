@@ -7,14 +7,14 @@ using PreloadBaseline.Nirvana;
 namespace Benchmarks
 {
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    [RankColumn()]
+    [RankColumn]
     [MemoryDiagnoser]
-    public class PreloadBaseline
+    public class Preloading
     {
         private readonly IChromosome _chr1;
         private readonly List<int> _positions;
 
-        public PreloadBaseline()
+        public Preloading()
         {
             _chr1      = new Chromosome("chr1", "1", null, null, 0, 0);
             _positions = Preloader.Preloader.GetPositions();
