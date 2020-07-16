@@ -4,6 +4,7 @@ The following projects are included in this solution:
  - `Benchmarks`
 	 - this will be used to test newer versions of the SA files against the version currently used in develop
 	 - the `PreloadBaseline` project contains the legacy SA code
+	 - to run the baseline benchmark: `dotnet Benchmarks.dll --filter PreloadBaseline`
 
  - `Compression`
 	 - lightweight version of our normal compression library. Contains zstd (normal & dictionary verions)
