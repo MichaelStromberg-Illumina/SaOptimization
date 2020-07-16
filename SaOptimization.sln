@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Version1", "Version1\Versio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateGnomadVersion1", "CreateGnomadVersion1\CreateGnomadVersion1.csproj", "{5BCC9564-320F-42EB-ABF7-CE8228DA3DF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression", "Compression\Compression.csproj", "{4A4E7974-3F3C-4410-8AD8-5AA922651BAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{5BCC9564-320F-42EB-ABF7-CE8228DA3DF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5BCC9564-320F-42EB-ABF7-CE8228DA3DF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BCC9564-320F-42EB-ABF7-CE8228DA3DF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A4E7974-3F3C-4410-8AD8-5AA922651BAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A4E7974-3F3C-4410-8AD8-5AA922651BAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A4E7974-3F3C-4410-8AD8-5AA922651BAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A4E7974-3F3C-4410-8AD8-5AA922651BAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

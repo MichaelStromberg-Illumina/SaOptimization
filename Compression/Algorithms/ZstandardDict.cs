@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Version1.Nirvana
+namespace Compression.Algorithms
 {
     public sealed class ZstandardDict : ICompressionAlgorithm
     {

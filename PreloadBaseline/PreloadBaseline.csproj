@@ -3,4 +3,7 @@
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <OutputPath>..\bin\$(Configuration)</OutputPath>
     </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Compression\Compression.csproj" />
+    </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@
         <OutputPath>..\bin\$(Configuration)</OutputPath>
     </PropertyGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Compression\Compression.csproj" />
       <ProjectReference Include="..\Version1\Version1.csproj" />
     </ItemGroup>
 </Project>
