@@ -8,13 +8,19 @@
       <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\NirvanaCommon\NirvanaCommon.csproj" />
       <ProjectReference Include="..\PreloadBaseline\PreloadBaseline.csproj" />
       <ProjectReference Include="..\Preloader\Preloader.csproj" />
+      <ProjectReference Include="..\Version1\Version1.csproj" />
+      <ProjectReference Include="..\Version2\Version2.csproj" />
     </ItemGroup>
     <ItemGroup>
         <None Update="BlockCompression\BlockCompression.dll">
             <Link>BlockCompression.dll</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="PreloadingUtils" />
     </ItemGroup>
 </Project>

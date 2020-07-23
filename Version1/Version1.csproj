@@ -2,8 +2,11 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.1</TargetFramework>
         <OutputPath>..\bin\$(Configuration)</OutputPath>
+        <LangVersion>latest</LangVersion>
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\Compression\Compression.csproj" />
+      <ProjectReference Include="..\NirvanaCommon\NirvanaCommon.csproj" />
+      <ProjectReference Include="..\VariantGrouping\VariantGrouping.csproj" />
     </ItemGroup>
 </Project>

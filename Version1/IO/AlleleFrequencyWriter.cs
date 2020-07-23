@@ -1,95 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using Compression.Algorithms;
+using NirvanaCommon;
 using Version1.Data;
-using Version1.Nirvana;
 
 namespace Version1.IO
 {
-    public class AlleleFrequencyWriter : IDisposable
+    public sealed class AlleleFrequencyWriter : IDisposable
     {
+        private readonly Stream _stream;
         private readonly ExtendedBinaryWriter _writer;
-        private readonly int _numRefSeqs;
-
-        private readonly IndexWriter _indexWriter;
-        private readonly Data.Index _index;
-
-        private readonly ICompressionAlgorithm _zstd;
-
+        private readonly IndexBuilder _indexBuilder;
+        
         public const byte FileFormatVersion = 1;
 
-        public AlleleFrequencyWriter(Stream            stream, Stream indexStream, GenomeAssembly genomeAssembly,
-                                     DataSourceVersion dataSourceVersion, string jsonKey, byte[] dictionaryBytes,
-                                     int               numRefSeqs, bool leaveOpen = false)
+        private int _numBlocks;
+        private long _sectionFileOffset;
+        private bool _useCommon;
+
+        public AlleleFrequencyWriter(Stream stream, GenomeAssembly genomeAssembly, DataSourceVersion dataSourceVersion,
+            string jsonKey, byte[] dictionaryBytes, int numRefSeqs, bool leaveOpen = false)
         {
-            _numRefSeqs = numRefSeqs;
+            _stream     = stream;
             _writer     = new ExtendedBinaryWriter(stream, leaveOpen);
 
-            var header = new Header(SaConstants.AlleleFrequencyIdentifier, FileFormatVersion);
-            WriteHeader(header);
-
-            var indexHeader = new IndexHeader(SaConstants.IndexIdentifier, IndexWriter.FileFormatVersion,
+            var header = new Header(SaConstants.AlleleFrequencyIdentifier, FileFormatVersion, numRefSeqs,
                 genomeAssembly, dataSourceVersion, jsonKey, dictionaryBytes);
-            _indexWriter = new IndexWriter(indexStream, indexHeader, leaveOpen);
+            header.Write(_writer);
             
-            _zstd = new ZstandardDict(17, dictionaryBytes);
+            _indexBuilder = new IndexBuilder(numRefSeqs);
         }
 
-        private void WriteHeader(Header header)
+        public void EndChromosome(Chromosome chromosome, BitArray bitArray)
         {
-            _writer.Write(header.Identifier);
-            _writer.Write(header.FileFormatVersion);
+            ushort refIndex = chromosome.Index;
+            _indexBuilder.FinalizeChromosome(refIndex, bitArray);
         }
 
-        public void WriteBlocks(Chromosome chromosome, List<Block> blocks)
+        private void InitializeSection(bool addingCommonBlocks)
         {
-            _writer.WriteOpt(blocks.Count);
-            foreach (Block block in blocks) block.Write(_writer);
+            _useCommon         = addingCommonBlocks;
+            _sectionFileOffset = _stream.Position;
+            _numBlocks         = 0;
+            _writer.Write(_numBlocks);
         }
+
+        private void UpdateBlockCount()
+        {
+            long currentOffset = _stream.Position;
+            _stream.Position = _sectionFileOffset;
+            _writer.Write(_numBlocks);
+            _stream.Position = currentOffset;
+        }
+
+        public ChromosomeIndex[] ChromosomeIndices => _indexBuilder.ChromosomeIndices;
         
-        // public void WriteChromosome(Chromosome chromosome, List<Block> commonBlocks, List<Block> rareBlocks)
-        // {
-        //
-        //     
-        //
-        //     CreateCommonBlocks(commonEntries);
-        //     Console.WriteLine($"- memory usage: {Process.GetCurrentProcess().WorkingSet64:N0} bytes");
-        //     
-        //     CreateRareBlocks(rareEntries);
-        //     Console.WriteLine($"- memory usage: {Process.GetCurrentProcess().WorkingSet64:N0} bytes");
-        // }
+        public void  StartCommon() => InitializeSection(true);
+        public void  EndCommon()   => UpdateBlockCount();
+        public void  StartRare()   => InitializeSection(false);
+        public void  EndRare()     => UpdateBlockCount();
 
-        // private void CreateRareBlocks(TsvEntry[] rareEntries)
-        // {
-        //     Console.Write("- creating rare blocks... ");
-        //     List<Block> rareBlocks = BlockUtilities.Create(rareEntries, SaConstants.MaxRareEntries, _zstd);
-        //     Console.WriteLine($"{rareBlocks.Count} blocks created.");
-        //     
-        //     Console.Write("- writing rare blocks... ");
-        //     _writer.WriteOpt(rareBlocks.Count);
-        //     foreach (Block block in rareBlocks) block.Write(_writer);
-        //     Console.WriteLine("finished.");
-        // }
-        //
-        // private void CreateCommonBlocks(TsvEntry[] commonEntries)
-        // {
-        //     Console.Write("- creating common blocks... ");
-        //     List<Block> commonBlocks = BlockUtilities.Create(commonEntries, SaConstants.MaxCommonEntries, _zstd);
-        //     Console.WriteLine($"{commonBlocks.Count} blocks created.");
-        //     
-        //     Console.Write("- writing common blocks... ");
-        //     _writer.WriteOpt(commonBlocks.Count);
-        //     foreach (Block block in commonBlocks) block.Write(_writer);
-        //     Console.WriteLine("finished.");
-        // }
-
-        public void WriteIndex(Stream stream, bool leaveOpen)
+        public void WriteBlock(WriteBlock block)
         {
-            using (var writer = new IndexWriter(stream, _index.Header, leaveOpen))
-            {
-                writer.Write(_index);
-            }
+            _indexBuilder.AddBlock(block.LastPosition, _stream.Position, _useCommon);
+            block.Write(_writer);
         }
 
         public void Dispose() => _writer.Dispose();

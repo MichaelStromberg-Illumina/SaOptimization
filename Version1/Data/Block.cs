@@ -1,78 +1,53 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Version1.Nirvana;
-using Version1.Utilities;
+﻿using Compression.Algorithms;
+using Compression.Data;
+using NirvanaCommon;
 
 namespace Version1.Data
 {
-    public sealed class Block
+    public class Block
     {
-        public readonly  int    LastPosition;
-        private readonly int    _numEntries;
-        private readonly byte[] _compressedBytes;
-        private readonly int    _numCompressedBytes;
+        protected byte[] CompressedBytes;
+        protected int    NumCompressedBytes;
 
-        public long FileOffset { get; private set; }
+        public    byte[] UncompressedBytes;
+        protected int    NumUncompressedBytes;
 
-        public Block(int lastPosition, int numEntries, byte[] compressedBytes, int numCompressedBytes)
+        private const double PercentAdditionalBytes = 1.02;
+
+        public Block(byte[] compressedBytes, int numCompressedBytes, int numUncompressedBytes)
         {
-            LastPosition        = lastPosition;
-            _numEntries         = numEntries;
-            _compressedBytes    = compressedBytes;
-            _numCompressedBytes = numCompressedBytes;
+            CompressedBytes      = compressedBytes;
+            NumCompressedBytes   = numCompressedBytes;
+            NumUncompressedBytes = numUncompressedBytes;
         }
 
-        // public Block(ICompressionAlgorithm compressionAlgorithm, List<TsvEntry> entries)
-        // {
-        //     LastPosition = entries[^1].Position;
-        //     _numEntries  = entries.Count;
-        //
-        //     byte[] dataBytes = GetBytes(entries);
-        //     int numDataBytes = dataBytes.Length;
-        //
-        //     int compressedBufferSize = compressionAlgorithm.GetCompressedBufferBounds(numDataBytes);
-        //     _compressedBytes = new byte[compressedBufferSize];
-        //
-        //     _numCompressedBytes = compressionAlgorithm.Compress(dataBytes, numDataBytes, 
-        //         _compressedBytes, compressedBufferSize);
-        // }
-
-        private static byte[] GetBytes(List<TsvEntry> entries)
+        public void Read(ExtendedBinaryReader reader)
         {
-            byte[] bytes;
+            NumCompressedBytes   = reader.ReadOptInt32();
+            NumUncompressedBytes = reader.ReadOptInt32() + NumCompressedBytes;
+            // Console.WriteLine($"# compressed bytes: {NumCompressedBytes:N0}, # uncompressed bytes: {NumUncompressedBytes:N0}");
 
-            var lastPosition = 0;
-
-            using (var stream = new MemoryStream())
-            using (var writer = new ExtendedBinaryWriter(stream))
+            if (CompressedBytes == null || NumCompressedBytes > CompressedBytes.Length)
             {
-                foreach (TsvEntry entry in entries)
-                {
-                    VariantType variantType = VariantTypeUtils.GetVariantType(entry.RefAllele, entry.AltAllele);
-                    VariantTypeUtils.CheckVariantType(variantType);
-
-                    string allele        = variantType == VariantType.deletion ? entry.RefAllele : entry.AltAllele;
-                    int    deltaPosition = entry.Position - lastPosition;
-
-                    writer.Write((byte) variantType);
-                    writer.WriteOpt(deltaPosition);
-                    writer.Write(allele);
-                    writer.Write(entry.Json);
-
-                    lastPosition = entry.Position;
-                }
-
-                bytes = stream.ToArray();
+                int newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
+                // Console.WriteLine($"Read:       reallocate to {newSize:N0}");
+                CompressedBytes = new byte[newSize];
             }
 
-            return bytes;
+            reader.ReadOptBytes(CompressedBytes, NumCompressedBytes);
         }
 
-        public void Write(ExtendedBinaryWriter writer)
+        public void Decompress(ZstdContext context, ZstdDictionary dictionary)
         {
-            FileOffset = writer.BaseStream.Position;
-            writer.WriteOpt(_numEntries);
-            writer.Write(_compressedBytes, 0, _numCompressedBytes);
+            if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length)
+            {
+                int newSize = (int)(NumUncompressedBytes * PercentAdditionalBytes);
+                // Console.WriteLine($"Decompress: reallocate to {newSize:N0}");
+                UncompressedBytes = new byte[newSize];
+            }
+
+            ZstandardDict.Decompress(CompressedBytes, NumCompressedBytes, UncompressedBytes, NumUncompressedBytes,
+                context, dictionary);
         }
     }
 }

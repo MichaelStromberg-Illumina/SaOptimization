@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using NirvanaCommon;
 using PreloadBaseline.Nirvana;
 
 namespace PreloadBaseline
 {
     public static class Baseline
     {
-        public static int Preload(IChromosome chr1, List<int> positions)
+        public static int Preload(Chromosome chromosome, List<int> positions)
         {
             const string dataPath  = @"E:\Data\Nirvana\Data\SupplementaryAnnotation\GRCh37_gnomAD\gnomAD_2.1.nsa";
             const string indexPath = dataPath + ".idx";
@@ -18,7 +19,7 @@ namespace PreloadBaseline
             {
                 var nsaReader = new NsaReader(dataStream, indexStream);
 
-                nsaReader.PreLoad(chr1, positions);
+                nsaReader.PreLoad(chromosome, positions);
                 foreach (int position in positions) nsaReader.GetAnnotation(position, annotations);
             }
 

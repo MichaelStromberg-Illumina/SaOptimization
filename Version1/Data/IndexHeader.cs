@@ -1,29 +1,34 @@
-﻿using Version1.Nirvana;
+﻿using NirvanaCommon;
 
 namespace Version1.Data
 {
     public sealed class IndexHeader
     {
         public readonly string Identifier;
-        public readonly byte FileFormatVersion;
-        public readonly GenomeAssembly GenomeAssembly;
-        public readonly DataSourceVersion DataSourceVersion;
-        public readonly string JsonKey;
-        public readonly byte[] CompressionDictionary;
+        public readonly byte   FileFormatVersion;
+        public readonly int    NumRefSeqs;
 
-        public IndexHeader(string            identifier,
-                           byte              fileFormatVersion,
-                           GenomeAssembly    genomeAssembly,
-                           DataSourceVersion dataSourceVersion,
-                           string            jsonKey,
-                           byte[]            compressionDictionary)
+        public IndexHeader(string identifier, byte fileFormatVersion, int numRefSeqs)
         {
-            Identifier            = identifier;
-            FileFormatVersion     = fileFormatVersion;
-            GenomeAssembly        = genomeAssembly;
-            DataSourceVersion     = dataSourceVersion;
-            JsonKey               = jsonKey;
-            CompressionDictionary = compressionDictionary;
+            Identifier        = identifier;
+            FileFormatVersion = fileFormatVersion;
+            NumRefSeqs        = numRefSeqs;
+        }
+
+        public void Write(ExtendedBinaryWriter writer)
+        {
+            writer.Write(Identifier);
+            writer.Write(FileFormatVersion);
+            writer.WriteOpt(NumRefSeqs);
+        }
+
+        public static IndexHeader Read(ExtendedBinaryReader reader)
+        {
+            string identifier        = reader.ReadString();
+            byte   fileFormatVersion = reader.ReadByte();
+            int    numRefSeqs        = reader.ReadOptInt32();
+
+            return new IndexHeader(identifier, fileFormatVersion, numRefSeqs);
         }
     }
 }

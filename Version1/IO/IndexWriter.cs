@@ -1,40 +1,54 @@
 ﻿using System;
 using System.IO;
+using NirvanaCommon;
 using Version1.Data;
-using Version1.Nirvana;
 
 namespace Version1.IO
 {
     public class IndexWriter : IDisposable
     {
+        private readonly Stream               _stream;
         private readonly ExtendedBinaryWriter _writer;
-        
+
+        private readonly long[] _chromosomeOffsets;
+        private readonly long   _chromosomeIndexOffset;
+
         public const byte FileFormatVersion = 1;
 
-        public IndexWriter(Stream stream, IndexHeader header, bool leaveOpen)
+        public IndexWriter(Stream stream, int numRefSeqs, bool leaveOpen = false)
         {
-            _writer = new ExtendedBinaryWriter(stream, leaveOpen);
+            _stream            = stream;
+            _writer            = new ExtendedBinaryWriter(stream, leaveOpen);
+            _chromosomeOffsets = new long[numRefSeqs];
+
+            var indexHeader = new IndexHeader(SaConstants.IndexIdentifier, FileFormatVersion, numRefSeqs);
+            indexHeader.Write(_writer);
+
+            _chromosomeIndexOffset = stream.Position;
+            WriteChromosomeOffsets();
+        }
+
+        private void WriteChromosomeOffsets()
+        {
+            foreach (long offset in _chromosomeOffsets) _writer.Write(offset);
+        }
+
+        public void Write(ChromosomeIndex[] chromsomeIndices)
+        {
+            if (chromsomeIndices.Length != _chromosomeOffsets.Length)
+                throw new InvalidDataException(
+                    $"Found a mismatch in the number of reference sequences ({chromsomeIndices.Length} vs {_chromosomeOffsets.Length})");
+
+            var refIndex = 0;
+            foreach (ChromosomeIndex chromosomeIndex in chromsomeIndices)
+            {
+                _chromosomeOffsets[refIndex++] = _stream.Position;
+                chromosomeIndex.Write(_writer);
+            }
             
-            WriteHeader(header);
-        }
-
-        private void WriteHeader(IndexHeader header)
-        {
-            _writer.Write(header.Identifier);
-            _writer.Write(header.FileFormatVersion);
-            _writer.Write((byte)header.GenomeAssembly);
-            _writer.Write(header.DataSourceVersion.Name);
-            _writer.Write(header.DataSourceVersion.Description);
-            _writer.Write(header.DataSourceVersion.Version);
-            _writer.Write(header.DataSourceVersion.ReleaseDate.Ticks);
-            _writer.Write(header.JsonKey);
-            _writer.WriteOpt(header.CompressionDictionary.Length);
-            _writer.Write(header.CompressionDictionary);
-        }
-
-        public void Write(Data.Index index)
-        {
-            throw new NotImplementedException();
+            // write the chromosome offsets
+            _stream.Position = _chromosomeIndexOffset;
+            WriteChromosomeOffsets();
         }
 
         public void Dispose() => _writer.Dispose();

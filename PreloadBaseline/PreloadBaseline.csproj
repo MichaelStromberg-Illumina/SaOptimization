@@ -5,5 +5,9 @@
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\Compression\Compression.csproj" />
+      <ProjectReference Include="..\NirvanaCommon\NirvanaCommon.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Profiler.Api" Version="1.1.6" />
     </ItemGroup>
 </Project>

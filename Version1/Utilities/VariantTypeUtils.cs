@@ -1,5 +1,5 @@
 ﻿using System;
-using Version1.Nirvana;
+using NirvanaCommon;
 
 namespace Version1.Utilities
 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Compression.Algorithms;
+using NirvanaCommon;
 
 namespace PreloadBaseline.Nirvana
 {
@@ -52,7 +53,7 @@ namespace PreloadBaseline.Nirvana
             _annotationReader = new ExtendedBinaryReader(_annotationStream);
         }
 
-        public void PreLoad(IChromosome chrom, List<int> positions)
+        public void PreLoad(Chromosome chrom, List<int> positions)
         {
             if (positions == null || positions.Count == 0) return;
 
@@ -99,8 +100,8 @@ namespace PreloadBaseline.Nirvana
             }
         }
 
-        public void GetAnnotation(int                                                           position,
-                                  List<(string refAllele, string altAllele, string annotation)> annotations)
+        public void GetAnnotation(int position,
+            List<(string refAllele, string altAllele, string annotation)> annotations)
         {
             annotations.Clear();
             int index = BinarySearch(position);
