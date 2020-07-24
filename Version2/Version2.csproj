@@ -7,6 +7,6 @@
     <ItemGroup>
       <ProjectReference Include="..\Compression\Compression.csproj" />
       <ProjectReference Include="..\NirvanaCommon\NirvanaCommon.csproj" />
-      <ProjectReference Include="..\Version1\Version1.csproj" />
+      <ProjectReference Include="..\VariantGrouping\VariantGrouping.csproj" />
     </ItemGroup>
 </Project>

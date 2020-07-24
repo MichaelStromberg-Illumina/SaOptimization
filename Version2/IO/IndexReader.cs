@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Compression.Data;
 using NirvanaCommon;
 using Version2.Data;
 
@@ -8,6 +9,9 @@ namespace Version2.IO
     public class IndexReader : IDisposable
     {
         private readonly Stream _stream;
+        private readonly Block _block;
+        private readonly ZstdContext _context;
+        private readonly ZstdDictionary _dict;
         private readonly ExtendedBinaryReader _reader;
         
         private readonly long[] _chromosomeOffsets;
@@ -15,10 +19,13 @@ namespace Version2.IO
         private ushort _currentRefIndex = UInt16.MaxValue;
         private ChromosomeIndex _currentIndex;
 
-        public IndexReader(Stream stream, bool leaveOpen = false)
+        public IndexReader(Stream stream, Block block, ZstdContext context, ZstdDictionary dict, bool leaveOpen = false)
         {
-            _stream    = stream;
-            _reader    = new ExtendedBinaryReader(_stream, leaveOpen);
+            _stream  = stream;
+            _reader  = new ExtendedBinaryReader(_stream, leaveOpen);
+            _block   = block;
+            _context = context;
+            _dict    = dict;
 
             IndexHeader header = IndexHeader.Read(_reader);
             CheckHeader(header);
@@ -54,7 +61,7 @@ namespace Version2.IO
             long fileOffset = _chromosomeOffsets[refIndex];
             _stream.Position = fileOffset;
 
-            var index = ChromosomeIndex.Read(_reader);
+            var index = ChromosomeIndex.Read(_reader, _block, _context, _dict);
             _currentIndex    = index;
             _currentRefIndex = refIndex;
 

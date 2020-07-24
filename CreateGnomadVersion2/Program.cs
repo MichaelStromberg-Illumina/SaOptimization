@@ -12,9 +12,9 @@ namespace CreateGnomadVersion2
     {
         private static void Main()
         {
-            const string commonPath = @"E:\Data\Nirvana\NewSA\gnomAD_chr1_common.tsv.gz";
-            const string rarePath   = @"E:\Data\Nirvana\NewSA\gnomAD_chr1_rare.tsv.gz";
-            const string saPath     = @"E:\Data\Nirvana\NewSA\gnomad_chr1_v2.nsa";
+            const string commonPath = @"E:\Data\Nirvana\NewSA\gnomAD_chr1_common_new.tsv.gz";
+            const string rarePath   = @"E:\Data\Nirvana\NewSA\gnomAD_chr1_rare_new.tsv.gz";
+            const string saPath     = @"E:\Data\Nirvana\NewSA\gnomad_chr1.nsa";
             const string indexPath  = saPath + ".idx";
 
             const GenomeAssembly genomeAssembly  = GenomeAssembly.GRCh37;
@@ -23,7 +23,6 @@ namespace CreateGnomadVersion2
             const int            numRefSeqs      = 1;
 
             var dict = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);
-            var chr1 = new Chromosome("chr1", "1", null, null, 249250621, 0);
             
             var dataSourceVersion = new DataSourceVersion("gnomAD", "2.1", releaseDate,
                 "Allele frequencies from Genome Aggregation Database (gnomAD)");
@@ -35,7 +34,7 @@ namespace CreateGnomadVersion2
             using (var writer = new AlleleFrequencyWriter(saStream, genomeAssembly, dataSourceVersion,
                 "gnomad", dictionaryBytes, numRefSeqs))
             {
-                var bitArray = new BitArray(chr1.Length);
+                var bitArray = new BitArray(GRCh37.Chr1.Length);
                 
                 Console.WriteLine("- creating common blocks:");
                 var commonBenchmark = new Benchmark();
@@ -52,17 +51,18 @@ namespace CreateGnomadVersion2
                 writer.EndRare();
                 ShowElapsedTime(rareBenchmark);
 
-                writer.EndChromosome(chr1, bitArray);
+                writer.EndChromosome(GRCh37.Chr1, bitArray);
                 chromosomeIndices = writer.ChromosomeIndices;
             }
             
             var indexBenchmark = new Benchmark();
             Console.WriteLine("- creating index:");
-            
+
             using (FileStream idxStream = FileUtilities.GetWriteStream(indexPath))
             using (var writer = new IndexWriter(idxStream, numRefSeqs))
             {
-                writer.Write(chromosomeIndices);
+                var context = new ZstdContext(CompressionMode.Compress);
+                writer.Write(chromosomeIndices, context, dict);
             }
             
             ShowElapsedTime(indexBenchmark);

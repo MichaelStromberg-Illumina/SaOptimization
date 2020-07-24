@@ -8,7 +8,4 @@
       <ProjectReference Include="..\Preloader\Preloader.csproj" />
       <ProjectReference Include="..\Version2\Version2.csproj" />
     </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="JetBrains.Profiler.Api" Version="1.1.6" />
-    </ItemGroup>
 </Project>
