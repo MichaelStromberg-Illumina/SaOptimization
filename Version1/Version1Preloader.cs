@@ -11,7 +11,7 @@ namespace Version1
 {
     public sealed class V1Preloader
     {
-        public static int Preload(Chromosome chromosome, List<PreloadVariant> variants)
+        public static int Preload(Chromosome chromosome, List<int> positions)
         {
             const string saPath    = @"E:\Data\Nirvana\NewSA\gnomad_chr1.nsa";
             const string indexPath = saPath + ".idx";
@@ -19,7 +19,7 @@ namespace Version1
             List<PreloadResult> results;
 
             var preloadBitArray = new BitArray(chromosome.Length);
-            foreach (PreloadVariant variant in variants) preloadBitArray.Set(variant.Position);
+            foreach (int position in positions) preloadBitArray.Set(position);
             
             var block   = new Block(null, 0, 0);
             var context = new ZstdContext(CompressionMode.Decompress);
@@ -30,9 +30,9 @@ namespace Version1
             using (var indexReader         = new IndexReader(idxStream, block, context, saReader.Dictionary))
             {
                 ChromosomeIndex index        = indexReader.Load(chromosome);
-                IndexEntry[]    indexEntries = index.GetIndexEntries(variants);
+                IndexEntry[]    indexEntries = index.GetIndexEntries(positions);
 
-                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, variants);
+                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, positions.Count);
             }
 
             return results.Count;

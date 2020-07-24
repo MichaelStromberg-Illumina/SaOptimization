@@ -44,7 +44,7 @@ namespace Benchmarks
         [Benchmark]
         public int V1()
         {
-            int numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, _variants);
+            int numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, _positions);
             if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
             return numPreloadedVariants;
         }

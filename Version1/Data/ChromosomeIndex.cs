@@ -125,7 +125,7 @@ namespace Version1.Data
             }
         }
 
-        public IndexEntry[] GetIndexEntries(List<PreloadVariant> variants)
+        public IndexEntry[] GetIndexEntries(List<int> positions)
         {
             var commonEntries = new List<IndexEntry>();
             var rareEntries   = new List<IndexEntry>();
@@ -133,9 +133,8 @@ namespace Version1.Data
             int lastCommonBlockIndex = -1;
             int lastRareBlockIndex   = -1;
 
-            foreach (PreloadVariant variant in variants)
+            foreach (int position in positions)
             {
-                int position = variant.Position;
                 GetIndexEntry(position, Common, commonEntries, ref lastCommonBlockIndex);
                 if (BitArray.Get(position)) GetIndexEntry(position, Rare, rareEntries, ref lastRareBlockIndex);
             }
@@ -147,16 +146,16 @@ namespace Version1.Data
         private static void GetIndexEntry(int position, IndexEntry[] index, List<IndexEntry> foundBlocks,
             ref int lastBlockIndex)
         {
-            int blockIndex = BinarySearch(index, position, lastBlockIndex);
+            int blockIndex = BinarySearch(index, position);
             if (blockIndex < 0 || blockIndex == lastBlockIndex) return;
 
             foundBlocks.Add(index[blockIndex]);
             lastBlockIndex = blockIndex;
         }
 
-        private static int BinarySearch(IndexEntry[] entries, int position, int begin)
+        private static int BinarySearch(IndexEntry[] entries, int position)
         {
-            if (begin < 0) begin = 0;
+            int begin = 0;
             int end = entries.Length - 1;
 
             while (begin <= end)

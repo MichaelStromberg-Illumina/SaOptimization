@@ -44,9 +44,9 @@ namespace Version1.IO
         }
 
         public List<PreloadResult> GetAnnotatedVariants(IndexEntry[] indexEntries, BitArray preloadBitArray,
-            List<PreloadVariant> variants)
+            int numPositions)
         {
-            var results = new List<PreloadResult>(variants.Count);
+            var results = new List<PreloadResult>(numPositions);
 
             foreach (IndexEntry indexEntry in indexEntries)
             {
