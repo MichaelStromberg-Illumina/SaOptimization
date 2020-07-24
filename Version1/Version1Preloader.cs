@@ -15,25 +15,27 @@ namespace Version1
         {
             const string saPath    = @"E:\Data\Nirvana\NewSA\gnomad_chr1.nsa";
             const string indexPath = saPath + ".idx";
+            
+            List<PreloadResult> results;
 
             var preloadBitArray = new BitArray(chromosome.Length);
             foreach (PreloadVariant variant in variants) preloadBitArray.Set(variant.Position);
-
-            List<AnnotatedVariant> annotatedVariants;
             
-            using (FileStream saStream = FileUtilities.GetReadStream(saPath))
-            using (FileStream idxStream = FileUtilities.GetReadStream(indexPath))
-            using (var saReader = new AlleleFrequencyReader(saStream))
-            using (var indexReader = new IndexReader(idxStream))
-            {
-                ChromosomeIndex index       = indexReader.Load(chromosome);
-                BlockRange[]    blockRanges = index.GetBlockRanges(variants);
+            var block   = new Block(null, 0, 0);
+            var context = new ZstdContext(CompressionMode.Decompress);
 
-                var context = new ZstdContext(CompressionMode.Decompress);
-                annotatedVariants = saReader.GetAnnotatedVariants(blockRanges, preloadBitArray, variants, context, saReader.Dictionary);
+            using (FileStream saStream     = FileUtilities.GetReadStream(saPath))
+            using (FileStream idxStream    = FileUtilities.GetReadStream(indexPath))
+            using (var saReader            = new AlleleFrequencyReader(saStream, block, context))
+            using (var indexReader         = new IndexReader(idxStream, block, context, saReader.Dictionary))
+            {
+                ChromosomeIndex index        = indexReader.Load(chromosome);
+                IndexEntry[]    indexEntries = index.GetIndexEntries(variants);
+
+                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, variants);
             }
 
-            return annotatedVariants.Count;
+            return results.Count;
         }
     }
 }

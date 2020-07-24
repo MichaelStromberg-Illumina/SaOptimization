@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Order;
 using NirvanaCommon;
 using PreloadBaseline;
 using VariantGrouping;
 using Version1;
-using Version2;
 
 namespace Benchmarks
 {
@@ -17,9 +17,11 @@ namespace Benchmarks
         private readonly List<int> _positions;
         private readonly List<PreloadVariant> _variants;
 
+        private const int ExpectedPreloadedVariants = 304_636;
+
         public Preloading()
         {
-            _positions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_preload.tsv");
+            _positions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_pedigree_position_new.txt");
             _variants = GetPreloadVariants(_positions);
         }
 
@@ -32,12 +34,22 @@ namespace Benchmarks
         }
 
         [Benchmark(Baseline = true)]
-        public int Current() => Baseline.Preload(GRCh37.Chr1, _positions);
+        public int Current()
+        {
+            int numPreloadedVariants = Baseline.Preload(GRCh37.Chr1, _positions);
+            if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
+            return numPreloadedVariants;
+        }
 
         [Benchmark]
-        public int V1() => V1Preloader.Preload(GRCh37.Chr1, _variants);
-        
-        [Benchmark]
-        public int V2() => V2Preloader.Preload(GRCh37.Chr1, _variants);
+        public int V1()
+        {
+            int numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, _variants);
+            if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
+            return numPreloadedVariants;
+        }
+
+        // [Benchmark]
+        // public int V2() => V2Preloader.Preload(GRCh37.Chr1, _variants);
     }
 }

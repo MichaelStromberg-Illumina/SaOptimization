@@ -32,6 +32,23 @@ namespace Version1.IO
 
             throw new FormatException("Unable to read the 7-bit encoded integer");
         }
+        
+        public long ReadOptInt64()
+        {
+            long count = 0;
+            var  shift = 0;
+
+            while (shift != 70)
+            {
+                byte b = _buffer[_bufferPos++];
+                count |= (long) (b & sbyte.MaxValue) << shift;
+                shift += 7;
+
+                if ((b & 128) == 0) return count;
+            }
+
+            throw new FormatException("Unable to read the 7-bit encoded long");
+        }
 
         public byte ReadByte() => _buffer[_bufferPos++];
 
@@ -59,5 +76,13 @@ namespace Version1.IO
         }
 
         public void SkipByte() => _bufferPos++;
+
+        public byte[] ReadBytes(int numBytes)
+        {
+            var bytes = new byte[numBytes];
+            Array.Copy(_buffer, _bufferPos, bytes, 0, numBytes);
+            _bufferPos += numBytes;
+            return bytes;
+        }
     }
 }

@@ -26,7 +26,7 @@ namespace Benchmarks
 
         public SubsamplePreloading()
         {
-            List<int> tempPositions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_preload.tsv");
+            List<int> tempPositions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_pedigree_position_new.txt");
 
             foreach (var numSamples in NumSamplesValues)
             {

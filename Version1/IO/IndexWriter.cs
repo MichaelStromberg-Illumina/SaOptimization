@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Compression.Data;
 using NirvanaCommon;
 using Version1.Data;
 
@@ -33,7 +34,7 @@ namespace Version1.IO
             foreach (long offset in _chromosomeOffsets) _writer.Write(offset);
         }
 
-        public void Write(ChromosomeIndex[] chromsomeIndices)
+        public void Write(ChromosomeIndex[] chromsomeIndices, ZstdContext context, ZstdDictionary dict)
         {
             if (chromsomeIndices.Length != _chromosomeOffsets.Length)
                 throw new InvalidDataException(
@@ -43,7 +44,7 @@ namespace Version1.IO
             foreach (ChromosomeIndex chromosomeIndex in chromsomeIndices)
             {
                 _chromosomeOffsets[refIndex++] = _stream.Position;
-                chromosomeIndex.Write(_writer);
+                chromosomeIndex.Write(_writer, context, dict);
             }
             
             // write the chromosome offsets

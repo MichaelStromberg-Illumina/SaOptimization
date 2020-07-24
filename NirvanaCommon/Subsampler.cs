@@ -18,7 +18,7 @@ namespace NirvanaCommon
         
         private static void Shuffle(this List<int> entryList)
         {
-            var r          = new Random(23);
+            var r          = new Random(11);
             int numEntries = entryList.Count;
 
             for (int i = numEntries - 1; i > 0; i--)

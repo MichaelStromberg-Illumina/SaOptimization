@@ -6,12 +6,12 @@ namespace NirvanaCommon
 {
     public sealed class ExtendedBinaryReader : BinaryReader
     {
-        private readonly Stream _output;
+        private readonly Stream _stream;
 
-        public ExtendedBinaryReader(Stream output, bool leaveOpen = false)
-            : base(output, Encoding.Default, leaveOpen)
+        public ExtendedBinaryReader(Stream stream, bool leaveOpen = false)
+            : base(stream, Encoding.Default, leaveOpen)
         {
-            _output = output;
+            _stream = stream;
         }
 
         public int ReadOptInt32()
@@ -48,6 +48,6 @@ namespace NirvanaCommon
             throw new FormatException("Unable to read the 7-bit encoded long");
         }
 
-        public void ReadOptBytes(byte[] buffer, int numBytes) => _output.Read(buffer, 0, numBytes);
+        public void ReadOptBytes(byte[] buffer, int numBytes) => _stream.Read(buffer, 0, numBytes);
     }
 }

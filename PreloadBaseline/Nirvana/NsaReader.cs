@@ -23,9 +23,9 @@ namespace PreloadBaseline.Nirvana
         private readonly List<AnnotationItem> _annotations;
         private readonly int _blockSize;
 
-        private ExtendedBinaryReader _annotationReader;
-        private MemoryStream _annotationStream;
-        private byte[] _annotationBuffer;
+        private readonly ExtendedBinaryReader _annotationReader;
+        private readonly MemoryStream _annotationStream;
+        private readonly byte[] _annotationBuffer;
 
 
         public NsaReader(Stream dataStream, Stream indexStream, int blockSize = SaCommon.DefaultBlockSize)
@@ -53,9 +53,9 @@ namespace PreloadBaseline.Nirvana
             _annotationReader = new ExtendedBinaryReader(_annotationStream);
         }
 
-        public void PreLoad(Chromosome chrom, List<int> positions)
+        public List<PreloadResult> PreLoad(Chromosome chrom, List<int> positions)
         {
-            if (positions == null || positions.Count == 0) return;
+            if (positions == null || positions.Count == 0) return null;
 
             _annotations.Clear();
             for (var i = 0; i < positions.Count;)
@@ -76,55 +76,31 @@ namespace PreloadBaseline.Nirvana
                 if (newIndex == i) i++; //no positions were found in this block
                 else i = newIndex;
             }
+
+            return GetPreloadedVariants(_annotations);
         }
 
-        private void ExtractAnnotations(byte[]                                                        data,
-                                        List<(string refAllele, string altAllele, string annotation)> annotations)
+        private List<PreloadResult> GetPreloadedVariants(List<AnnotationItem> annotations)
         {
-            Array.Copy(data, _annotationBuffer, data.Length);
-            _annotationStream.Position = 0;
-            if (IsPositional)
+            var results = new List<PreloadResult>(annotations.Count);
+
+            foreach (AnnotationItem annotationItem in annotations)
             {
-                var positionalAnno = _annotationReader.ReadString();
-                annotations.Add((null, null, positionalAnno));
-                return;
+                Array.Copy(annotationItem.Data, _annotationBuffer, annotationItem.Data.Length);
+                _annotationStream.Position = 0;
+
+                int numAlleles = _annotationReader.ReadOptInt32();
+                for (var alleleIndex = 0; alleleIndex < numAlleles; alleleIndex++)
+                {
+                    string refAllele = _annotationReader.ReadAsciiString();
+                    string altAllele = _annotationReader.ReadAsciiString();
+                    string json      = _annotationReader.ReadString();
+
+                    results.Add(new PreloadResult(annotationItem.Position, refAllele, altAllele, json));
+                }
             }
 
-            int count = _annotationReader.ReadOptInt32();
-            for (var i = 0; i < count; i++)
-            {
-                string refAllele  = _annotationReader.ReadAsciiString();
-                string altAllele  = _annotationReader.ReadAsciiString();
-                string annotation = _annotationReader.ReadString();
-                annotations.Add((refAllele ?? "", altAllele ?? "", annotation));
-            }
-        }
-
-        public void GetAnnotation(int position,
-            List<(string refAllele, string altAllele, string annotation)> annotations)
-        {
-            annotations.Clear();
-            int index = BinarySearch(position);
-            if (index < 0) return;
-            ExtractAnnotations(_annotations[index].Data, annotations);
-        }
-
-        private int BinarySearch(int position)
-        {
-            var begin = 0;
-            int end   = _annotations.Count - 1;
-
-            while (begin <= end)
-            {
-                int index = begin + (end - begin >> 1);
-
-                int ret = _annotations[index].Position.CompareTo(position);
-                if (ret == 0) return index;
-                if (ret < 0) begin = index + 1;
-                else end           = index - 1;
-            }
-
-            return ~begin;
+            return results;
         }
 
         public void Dispose()

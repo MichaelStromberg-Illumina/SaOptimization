@@ -13,14 +13,18 @@ namespace Version1.IO
     {
         private readonly Stream               _stream;
         private readonly ExtendedBinaryReader _reader;
+        private readonly Block                _block;
+        private readonly ZstdContext          _context;
 
         private readonly ZstdDictionary _dictionary;
         public ZstdDictionary Dictionary => _dictionary;
 
-        public AlleleFrequencyReader(Stream stream, bool leaveOpen = false)
+        public AlleleFrequencyReader(Stream stream, Block block, ZstdContext context, bool leaveOpen = false)
         {
-            _stream = stream;
-            _reader = new ExtendedBinaryReader(stream, leaveOpen);
+            _stream  = stream;
+            _reader  = new ExtendedBinaryReader(stream, leaveOpen);
+            _block   = block;
+            _context = context;
 
             Header header = Header.Read(_reader);
             CheckHeader(header);
@@ -39,50 +43,46 @@ namespace Version1.IO
                     $"Unsupported file format version (supported: {AlleleFrequencyWriter.FileFormatVersion} vs file: {header.FileFormatVersion}");
         }
 
-        public List<AnnotatedVariant> GetAnnotatedVariants(BlockRange[] blockRanges, BitArray preloadBitArray,
-            List<PreloadVariant> variants, ZstdContext context, ZstdDictionary dictionary)
+        public List<PreloadResult> GetAnnotatedVariants(IndexEntry[] indexEntries, BitArray preloadBitArray,
+            List<PreloadVariant> variants)
         {
-            var annotations = new List<AnnotatedVariant>(variants.Count);
-            var block       = new Block(null, 0, 0);
-            int numVariants = 0;
+            var results = new List<PreloadResult>(variants.Count);
 
-            foreach (BlockRange blockRange in blockRanges)
+            foreach (IndexEntry indexEntry in indexEntries)
             {
-                _stream.Position = blockRange.FileOffset;
+                _stream.Position = indexEntry.Offset;
 
-                for (var numBlocks = 0; numBlocks < blockRange.NumBlocks; numBlocks++)
+                _block.Read(_reader);
+                _block.Decompress(_context, _dictionary);
+
+                var reader       = new BufferBinaryReader(_block.UncompressedBytes);
+                int numEntries   = reader.ReadOptInt32();
+                int lastPosition = 0;
+
+                for (int entryIndex = 0; entryIndex < numEntries; entryIndex++)
                 {
-                    block.Read(_reader);
-                    block.Decompress(context, dictionary);
+                    int position = reader.ReadOptInt32() + lastPosition;
 
-                    var reader       = new BufferBinaryReader(block.UncompressedBytes);
-                    int numEntries   = reader.ReadOptInt32();
-                    int lastPosition = 0;
-
-                    for (int entryIndex = 0; entryIndex < numEntries; entryIndex++)
+                    if (preloadBitArray.Get(position))
                     {
-                        int position = reader.ReadOptInt32() + lastPosition;
+                        var    variantType = (VariantType) reader.ReadByte();
+                        string allele      = reader.ReadString();
+                        string json        = reader.ReadString();
 
-                        if (preloadBitArray.Get(position))
-                        {
-                            var variantType = (VariantType) reader.ReadByte();
-                            string allele = reader.ReadString();
-                            string json   = reader.ReadString();
-                            annotations.Add(new AnnotatedVariant(position, variantType, allele, json));
-                        }
-                        else
-                        {
-                            reader.SkipByte();
-                            reader.SkipString();
-                            reader.SkipString();
-                        }
-
-                        lastPosition = position;
+                        results.Add(new PreloadResult(position, null, allele, json));
                     }
+                    else
+                    {
+                        reader.SkipByte();
+                        reader.SkipString();
+                        reader.SkipString();
+                    }
+
+                    lastPosition = position;
                 }
             }
 
-            return annotations;
+            return results;
         }
 
         public void Dispose() => _stream.Dispose();
