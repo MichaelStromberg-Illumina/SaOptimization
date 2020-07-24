@@ -5,13 +5,6 @@ namespace Compression.Algorithms
 {
     public sealed class Zstandard : ICompressionAlgorithm
     {
-        private readonly int _compressionLevel;
-
-        public Zstandard(int compressionLevel = 17)
-        {
-            _compressionLevel = compressionLevel;
-        }
-
         public int Decompress(byte[] source, int srcLength, byte[] destination, int destLength)
         {
             if (destination == null)
@@ -28,13 +21,7 @@ namespace Compression.Algorithms
         private static class SafeNativeMethods
         {
             [DllImport("BlockCompression", CallingConvention = CallingConvention.Cdecl)]
-            public static extern ulong ZSTD_compress(byte[] destination, ulong destinationLen, byte[] source, ulong sourceLen, int compressionLevel);
-
-            [DllImport("BlockCompression", CallingConvention = CallingConvention.Cdecl)]
             public static extern ulong ZSTD_decompress(byte[] destination, ulong destinationLen, byte[] source, ulong sourceLen);
-
-            [DllImport("BlockCompression", CallingConvention = CallingConvention.Cdecl)]
-            public static extern ulong ZSTD_getDecompressedSize(byte[] source, int sourceLen);
         }
     }
 }

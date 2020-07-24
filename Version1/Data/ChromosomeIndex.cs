@@ -4,7 +4,6 @@ using System.IO;
 using Compression.Algorithms;
 using Compression.Data;
 using NirvanaCommon;
-using VariantGrouping;
 using Version1.IO;
 
 namespace Version1.Data

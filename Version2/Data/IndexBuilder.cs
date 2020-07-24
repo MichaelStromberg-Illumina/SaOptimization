@@ -22,10 +22,10 @@ namespace Version2.Data
             else _rareEntries.Add(indexEntry);
         }
 
-        public void FinalizeChromosome(ushort refIndex, BitArray bitArray)
+        public void FinalizeChromosome(ushort refIndex, BitArray commonBitArray, BitArray rareBitArray)
         {
             _chromsomeIndices[refIndex] =
-                new ChromosomeIndex(bitArray, _commonEntries.ToArray(), _rareEntries.ToArray());
+                new ChromosomeIndex(commonBitArray, rareBitArray, _commonEntries.ToArray(), _rareEntries.ToArray());
             _commonEntries.Clear();
             _rareEntries.Clear();
         }

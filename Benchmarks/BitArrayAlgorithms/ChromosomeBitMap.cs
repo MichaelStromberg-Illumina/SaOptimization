@@ -9,7 +9,6 @@ namespace Benchmarks.BitArrayAlgorithms
         private readonly byte[] _buffer;
         public           int    Capacity       { get; private set; }
         private          int    BufferSize     => Capacity >> 3;
-        private          int    BufferCapacity => _buffer.Length * 8;
 
         public ChromosomeBitMap(int capacity)
         {

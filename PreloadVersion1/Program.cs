@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NirvanaCommon;
-using VariantGrouping;
+using Preloader;
 using Version1;
 
 namespace PreloadVersion1
@@ -10,10 +10,7 @@ namespace PreloadVersion1
     {
         static void Main()
         {
-            List<int> positions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_pedigree_position_new.txt");
-            
-            // var variants = new List<PreloadVariant>(positions.Count);
-            // foreach (int position in positions) variants.Add(new PreloadVariant(position, null, VariantType.SNV));
+            List<int> positions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
             
             var benchmark = new Benchmark();
             int numPreloaded = V1Preloader.Preload(GRCh37.Chr1, positions);

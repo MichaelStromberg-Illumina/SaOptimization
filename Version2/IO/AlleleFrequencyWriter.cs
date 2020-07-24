@@ -30,10 +30,10 @@ namespace Version2.IO
             _indexBuilder = new IndexBuilder(numRefSeqs);
         }
 
-        public void EndChromosome(Chromosome chromosome, BitArray bitArray)
+        public void EndChromosome(Chromosome chromosome, BitArray commonBitArray, BitArray rareBitArray)
         {
             ushort refIndex = chromosome.Index;
-            _indexBuilder.FinalizeChromosome(refIndex, bitArray);
+            _indexBuilder.FinalizeChromosome(refIndex, commonBitArray, rareBitArray);
         }
 
         private void InitializeSection(bool addingCommonBlocks)

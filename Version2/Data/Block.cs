@@ -25,12 +25,10 @@ namespace Version2.Data
         {
             NumCompressedBytes   = reader.ReadOptInt32();
             NumUncompressedBytes = reader.ReadOptInt32() + NumCompressedBytes;
-            // Console.WriteLine($"# compressed bytes: {NumCompressedBytes:N0}, # uncompressed bytes: {NumUncompressedBytes:N0}");
 
             if (CompressedBytes == null || NumCompressedBytes > CompressedBytes.Length)
             {
                 int newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
-                // Console.WriteLine($"Read:       reallocate to {newSize:N0}");
                 CompressedBytes = new byte[newSize];
             }
 
@@ -42,7 +40,6 @@ namespace Version2.Data
             if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length)
             {
                 int newSize = (int)(NumUncompressedBytes * PercentAdditionalBytes);
-                // Console.WriteLine($"Decompress: reallocate to {newSize:N0}");
                 UncompressedBytes = new byte[newSize];
             }
 

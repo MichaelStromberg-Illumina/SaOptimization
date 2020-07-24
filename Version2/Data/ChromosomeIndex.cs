@@ -10,15 +10,17 @@ namespace Version2.Data
 {
     public sealed class ChromosomeIndex
     {
-        public readonly BitArray     BitArray;
+        public readonly BitArray     CommonBitArray;
+        public readonly BitArray     RareBitArray;
         public readonly IndexEntry[] Common;
         public readonly IndexEntry[] Rare;
         
-        public ChromosomeIndex(BitArray bitArray, IndexEntry[] common, IndexEntry[] rare)
+        public ChromosomeIndex(BitArray commonBitArray, BitArray rareBitArray, IndexEntry[] common, IndexEntry[] rare)
         {
-            BitArray = bitArray;
-            Common   = common;
-            Rare     = rare;
+            CommonBitArray = commonBitArray;
+            RareBitArray   = rareBitArray;
+            Common         = common;
+            Rare           = rare;
         }
 
         public static ChromosomeIndex Read(ExtendedBinaryReader reader, Block block, ZstdContext context,
@@ -26,21 +28,28 @@ namespace Version2.Data
         {
             block.Read(reader);
             block.Decompress(context, dict);
-            
+
             var bufferReader = new BufferBinaryReader(block.UncompressedBytes);
-            
+
+            BitArray commonBitArray = ReadBitArray(bufferReader);
+            BitArray rareBitArray   = ReadBitArray(bufferReader);
+
+            IndexEntry[] commonEntries = ReadSection(bufferReader);
+            IndexEntry[] rareEntries   = ReadSection(bufferReader);
+
+            return new ChromosomeIndex(commonBitArray, rareBitArray, commonEntries, rareEntries);
+        }
+
+        private static BitArray ReadBitArray(BufferBinaryReader bufferReader)
+        {
             int    numBytes  = bufferReader.ReadOptInt32();
             byte[] byteArray = bufferReader.ReadBytes(numBytes);
 
             var intArray = new int[numBytes / sizeof(int)];
             Buffer.BlockCopy(byteArray, 0, intArray, 0, numBytes);
-            
+
             var bitArray = new BitArray(intArray);
-
-            IndexEntry[] commonEntries = ReadSection(bufferReader);
-            IndexEntry[] rareEntries   = ReadSection(bufferReader);
-
-            return new ChromosomeIndex(bitArray, commonEntries, rareEntries);
+            return bitArray;
         }
 
         private static IndexEntry[] ReadSection(BufferBinaryReader reader)
@@ -68,7 +77,7 @@ namespace Version2.Data
             return entries;
         }
 
-        public void Write(ExtendedBinaryWriter writer, ZstdContext context, ZstdDictionary dict)
+        public void Write(ExtendedBinaryWriter writer, ZstdContext context)
         {
             byte[] bytes;
             int numBytes;
@@ -76,12 +85,8 @@ namespace Version2.Data
             using (var memoryStream = new MemoryStream())
             using (var memoryWriter = new ExtendedBinaryWriter(memoryStream))
             {
-                int[] intArray  = BitArray.Data;
-                var   byteArray = new byte[intArray.Length * sizeof(int)];
-                Buffer.BlockCopy(intArray, 0, byteArray, 0, byteArray.Length);
-                
-                memoryWriter.WriteOpt(byteArray.Length);
-                memoryWriter.Write(byteArray);
+                WriteBitArray(memoryWriter, CommonBitArray);
+                WriteBitArray(memoryWriter, RareBitArray);
                 WriteSection(memoryWriter, Common);
                 WriteSection(memoryWriter, Rare);
 
@@ -89,17 +94,27 @@ namespace Version2.Data
                 numBytes = (int) memoryStream.Position;
             }
 
-            int compressedBufferSize = ZstandardDict.GetCompressedBufferBounds(numBytes);
+            int compressedBufferSize = ZstandardStatic.GetCompressedBufferBounds(numBytes);
             var compressedBytes      = new byte[compressedBufferSize];
             
-            int numCompressedBytes = ZstandardDict.Compress(bytes, numBytes,
-                compressedBytes, compressedBufferSize, context, dict);
+            int numCompressedBytes = ZstandardStatic.Compress(bytes, numBytes,
+                compressedBytes, compressedBufferSize, context);
 
             Console.WriteLine(
                 $"ChromosomeIndex.Write: uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes");
             
             var block = new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
             block.Write(writer);
+        }
+
+        private static void WriteBitArray(ExtendedBinaryWriter memoryWriter, BitArray bitArray)
+        {
+            int[] intArray  = bitArray.Data;
+            var   byteArray = new byte[intArray.Length * sizeof(int)];
+            Buffer.BlockCopy(intArray, 0, byteArray, 0, byteArray.Length);
+
+            memoryWriter.WriteOpt(byteArray.Length);
+            memoryWriter.Write(byteArray);
         }
 
         private static void WriteSection(ExtendedBinaryWriter writer, IndexEntry[] entries)
@@ -134,8 +149,8 @@ namespace Version2.Data
 
             foreach (int position in positions)
             {
-                GetIndexEntry(position, Common, commonEntries, ref lastCommonBlockIndex);
-                if (BitArray.Get(position)) GetIndexEntry(position, Rare, rareEntries, ref lastRareBlockIndex);
+                if (CommonBitArray.Get(position)) GetIndexEntry(position, Common, commonEntries, ref lastCommonBlockIndex);
+                if (RareBitArray.Get(position))   GetIndexEntry(position, Rare, rareEntries, ref lastRareBlockIndex);
             }
 
             commonEntries.AddRange(rareEntries);

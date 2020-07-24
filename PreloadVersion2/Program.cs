@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NirvanaCommon;
+using Preloader;
 using Version2;
 
 namespace PreloadVersion2
@@ -9,7 +10,7 @@ namespace PreloadVersion2
     {
         static void Main()
         {
-            List<int> positions = Preloader.Preloader.GetPositions(@"E:\Data\Nirvana\gnomAD_chr1_pedigree_position_new.txt");
+            List<int> positions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
             
             var benchmark = new Benchmark();
             int numPreloaded = V2Preloader.Preload(GRCh37.Chr1, positions);
