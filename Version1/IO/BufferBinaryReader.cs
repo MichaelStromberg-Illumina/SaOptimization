@@ -16,6 +16,9 @@ namespace Version1.IO
 
         public BufferBinaryReader(byte[] buffer) => _buffer = buffer;
 
+        private const int MostSignificantBit = 128;
+        private const int VlqBitShift        = 7;
+        
         public int ReadOptInt32()
         {
             var count = 0;
@@ -25,9 +28,9 @@ namespace Version1.IO
             {
                 byte b = _buffer[_bufferPos++];
                 count |= (b & sbyte.MaxValue) << shift;
-                shift += 7;
+                shift += VlqBitShift;
 
-                if ((b & 128) == 0) return count;
+                if ((b & MostSignificantBit) == 0) return count;
             }
 
             throw new FormatException("Unable to read the 7-bit encoded integer");
@@ -42,9 +45,9 @@ namespace Version1.IO
             {
                 byte b = _buffer[_bufferPos++];
                 count |= (long) (b & sbyte.MaxValue) << shift;
-                shift += 7;
+                shift += VlqBitShift;
 
-                if ((b & 128) == 0) return count;
+                if ((b & MostSignificantBit) == 0) return count;
             }
 
             throw new FormatException("Unable to read the 7-bit encoded long");
