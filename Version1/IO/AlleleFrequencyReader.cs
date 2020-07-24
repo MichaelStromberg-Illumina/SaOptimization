@@ -52,7 +52,7 @@ namespace Version1.IO
                 _stream.Position = indexEntry.Offset;
 
                 _block.Read(_reader);
-                _block.Decompress(_context, _dictionary);
+                _block.DecompressDict(_context, _dictionary);
 
                 var reader       = new BufferBinaryReader(_block.UncompressedBytes);
                 int numEntries   = reader.ReadOptInt32();

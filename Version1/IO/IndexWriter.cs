@@ -34,7 +34,7 @@ namespace Version1.IO
             foreach (long offset in _chromosomeOffsets) _writer.Write(offset);
         }
 
-        public void Write(ChromosomeIndex[] chromsomeIndices, ZstdContext context, ZstdDictionary dict)
+        public void Write(ChromosomeIndex[] chromsomeIndices, ZstdContext context)
         {
             if (chromsomeIndices.Length != _chromosomeOffsets.Length)
                 throw new InvalidDataException(
@@ -44,7 +44,7 @@ namespace Version1.IO
             foreach (ChromosomeIndex chromosomeIndex in chromsomeIndices)
             {
                 _chromosomeOffsets[refIndex++] = _stream.Position;
-                chromosomeIndex.Write(_writer, context, dict);
+                chromosomeIndex.Write(_writer, context);
             }
             
             // write the chromosome offsets

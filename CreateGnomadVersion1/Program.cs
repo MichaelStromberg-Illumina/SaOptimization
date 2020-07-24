@@ -51,7 +51,7 @@ namespace CreateGnomadVersion1
             using (var writer = new IndexWriter(idxStream, GRCh37.NumRefSeqs))
             {
                 var context = new ZstdContext(CompressionMode.Compress);
-                writer.Write(chromosomeIndices, context, dict);
+                writer.Write(chromosomeIndices, context);
             }
 
             ShowElapsedTime(indexBenchmark);

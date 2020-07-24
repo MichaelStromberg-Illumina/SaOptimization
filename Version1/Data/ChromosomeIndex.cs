@@ -21,11 +21,10 @@ namespace Version1.Data
             Rare     = rare;
         }
 
-        public static ChromosomeIndex Read(ExtendedBinaryReader reader, Block block, ZstdContext context,
-            ZstdDictionary dict)
+        public static ChromosomeIndex Read(ExtendedBinaryReader reader, Block block, ZstdContext context)
         {
             block.Read(reader);
-            block.Decompress(context, dict);
+            block.Decompress(context);
             
             var bufferReader = new BufferBinaryReader(block.UncompressedBytes);
             
@@ -68,7 +67,7 @@ namespace Version1.Data
             return entries;
         }
 
-        public void Write(ExtendedBinaryWriter writer, ZstdContext context, ZstdDictionary dict)
+        public void Write(ExtendedBinaryWriter writer, ZstdContext context)
         {
             byte[] bytes;
             int numBytes;
@@ -89,11 +88,11 @@ namespace Version1.Data
                 numBytes = (int) memoryStream.Position;
             }
 
-            int compressedBufferSize = ZstandardDict.GetCompressedBufferBounds(numBytes);
+            int compressedBufferSize = ZstandardStatic.GetCompressedBufferBounds(numBytes);
             var compressedBytes      = new byte[compressedBufferSize];
             
-            int numCompressedBytes = ZstandardDict.Compress(bytes, numBytes,
-                compressedBytes, compressedBufferSize, context, dict);
+            int numCompressedBytes = ZstandardStatic.Compress(bytes, numBytes,
+                compressedBytes, compressedBufferSize, context);
 
             Console.WriteLine(
                 $"ChromosomeIndex.Write: uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes");

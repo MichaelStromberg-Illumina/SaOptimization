@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Compression.Data;
@@ -23,7 +24,7 @@ namespace Version1
             using (FileStream saStream  = FileUtilities.GetReadStream(SaConstants.SaPath))
             using (FileStream idxStream = FileUtilities.GetReadStream(SaConstants.IndexPath))
             using (var saReader         = new AlleleFrequencyReader(saStream, block, context))
-            using (var indexReader      = new IndexReader(idxStream, block, context, saReader.Dictionary))
+            using (var indexReader      = new IndexReader(idxStream, block, context))
             {
                 ChromosomeIndex index        = indexReader.Load(chromosome);
                 IndexEntry[]    indexEntries = index.GetIndexEntries(positions);

@@ -37,17 +37,24 @@ namespace Version1.Data
             reader.ReadOptBytes(CompressedBytes, NumCompressedBytes);
         }
 
-        public void Decompress(ZstdContext context, ZstdDictionary dictionary)
+        public void DecompressDict(ZstdContext context, ZstdDictionary dictionary)
         {
-            if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length)
-            {
-                int newSize = (int)(NumUncompressedBytes * PercentAdditionalBytes);
-                // Console.WriteLine($"Decompress: reallocate to {newSize:N0}");
-                UncompressedBytes = new byte[newSize];
-            }
-
+            if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length) Resize();
             ZstandardDict.Decompress(CompressedBytes, NumCompressedBytes, UncompressedBytes, NumUncompressedBytes,
                 context, dictionary);
+        }
+        
+        public void Decompress(ZstdContext context)
+        {
+            if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length) Resize();
+            ZstandardStatic.Decompress(CompressedBytes, NumCompressedBytes, UncompressedBytes, NumUncompressedBytes,
+                context);
+        }
+
+        private void Resize()
+        {
+            var newSize = (int) (NumUncompressedBytes * PercentAdditionalBytes);
+            UncompressedBytes = new byte[newSize];
         }
     }
 }
