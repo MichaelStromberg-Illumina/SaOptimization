@@ -23,7 +23,7 @@ namespace Benchmarks
         public int Current() => Baseline.Preload(GRCh37.Chr1, _positions);
 
         [Benchmark]
-        public int V1() => V1Preloader.Preload(GRCh37.Chr1, _positions);
+        public int V1() => V1Preloader.Preload(GRCh37.Chr1, _positions, "0.05");
 
         [Benchmark]
         public int V2() => V2Preloader.Preload(GRCh37.Chr1, _positions);

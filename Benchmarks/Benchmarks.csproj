@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputPath>..\bin\$(Configuration)</OutputPath>
     </PropertyGroup>
     <ItemGroup>
@@ -13,14 +13,7 @@
       <ProjectReference Include="..\Preloader\Preloader.csproj" />
       <ProjectReference Include="..\Version1\Version1.csproj" />
       <ProjectReference Include="..\Version2\Version2.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="BlockCompression\BlockCompression.dll">
-            <Link>BlockCompression.dll</Link>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="PreloadingUtils" />
+      <ProjectReference Include="..\Version3\Version3.csproj" />
+      <ProjectReference Include="..\Version4\Version4.csproj" />
     </ItemGroup>
 </Project>

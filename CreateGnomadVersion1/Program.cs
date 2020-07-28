@@ -11,15 +11,28 @@ namespace CreateGnomadVersion1
 {
     static class Program
     {
-        private static void Main()
+        static void Main(string [] args)
         {
+            if (args.Length != 1)
+            {
+                Console.WriteLine($"USAGE: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} <common threshold>");
+                Environment.Exit(1);
+            }
+            
+            string commonThreshold = args[0];
+
+            string commonTsvPath = $"E:\\Data\\Nirvana\\NewSA\\gnomAD_chr1_common_{commonThreshold}.tsv.gz";
+            string rareTsvPath   = $"E:\\Data\\Nirvana\\NewSA\\gnomAD_chr1_rare_{commonThreshold}.tsv.gz";
+            string saPath        = $"E:\\Data\\Nirvana\\NewSA\\gnomad_chr1_v1_{commonThreshold}.nsa";
+            string indexPath     = saPath + ".idx";
+            
             byte[] dictionaryBytes = File.ReadAllBytes(GnomAD.DictionaryPath);
             var    dict            = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);
 
             ChromosomeIndex[] chromosomeIndices;
             var               benchmark = new Benchmark();
 
-            using (FileStream saStream = FileUtilities.GetWriteStream(SaConstants.SaPath))
+            using (FileStream saStream = FileUtilities.GetWriteStream(saPath))
             using (var writer = new AlleleFrequencyWriter(saStream, GRCh37.Assembly, GnomAD.DataSourceVersion,
                 GnomAD.JsonKey, dictionaryBytes, GRCh37.NumRefSeqs))
             {
@@ -29,14 +42,14 @@ namespace CreateGnomadVersion1
                 var commonBenchmark = new Benchmark();
                 writer.StartCommon();
                 // bit array is only used for rare variants
-                CompressPipeline.RunPipeline(Pedigree.CommonTsvPath, SaConstants.MaxCommonEntries, dict, writer, null).Wait();
+                CompressPipeline.RunPipeline(commonTsvPath, SaConstants.MaxCommonEntries, dict, writer, null).Wait();
                 writer.EndCommon();
                 ShowElapsedTime(commonBenchmark);
 
                 Console.WriteLine("- creating rare blocks:");
                 var rareBenchmark = new Benchmark();
                 writer.StartRare();
-                CompressPipeline.RunPipeline(Pedigree.RareTsvPath, SaConstants.MaxRareEntries, dict, writer, bitArray).Wait();
+                CompressPipeline.RunPipeline(rareTsvPath, SaConstants.MaxRareEntries, dict, writer, bitArray).Wait();
                 writer.EndRare();
                 ShowElapsedTime(rareBenchmark);
 
@@ -47,7 +60,7 @@ namespace CreateGnomadVersion1
             var indexBenchmark = new Benchmark();
             Console.WriteLine("- creating index:");
 
-            using (FileStream idxStream = FileUtilities.GetWriteStream(SaConstants.IndexPath))
+            using (FileStream idxStream = FileUtilities.GetWriteStream(indexPath))
             using (var writer = new IndexWriter(idxStream, GRCh37.NumRefSeqs))
             {
                 var context = new ZstdContext(CompressionMode.Compress);

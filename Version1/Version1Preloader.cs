@@ -11,8 +11,11 @@ namespace Version1
 {
     public static class V1Preloader
     {
-        public static int Preload(Chromosome chromosome, List<int> positions)
+        public static int Preload(Chromosome chromosome, List<int> positions, string commonThreshold)
         {
+            string saPath    = $"E:\\Data\\Nirvana\\NewSA\\gnomad_chr1_v1_{commonThreshold}.nsa";
+            string indexPath = saPath + ".idx";
+            
             List<PreloadResult> results;
 
             var preloadBitArray = new BitArray(chromosome.Length);
@@ -21,8 +24,8 @@ namespace Version1
             var block   = new Block(null, 0, 0);
             var context = new ZstdContext(CompressionMode.Decompress);
 
-            using (FileStream saStream  = FileUtilities.GetReadStream(SaConstants.SaPath))
-            using (FileStream idxStream = FileUtilities.GetReadStream(SaConstants.IndexPath))
+            using (FileStream saStream  = FileUtilities.GetReadStream(saPath))
+            using (FileStream idxStream = FileUtilities.GetReadStream(indexPath))
             using (var saReader         = new AlleleFrequencyReader(saStream, block, context))
             using (var indexReader      = new IndexReader(idxStream, block, context))
             {
