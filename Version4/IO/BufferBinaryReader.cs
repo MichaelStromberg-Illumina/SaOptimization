@@ -80,12 +80,13 @@ namespace Version4.IO
 
         public void SkipByte() => _bufferPos++;
 
-        public byte[] ReadBytes(int numBytes)
+        public Span<byte> ReadBytes(int numBytes)
         {
-            var bytes = new byte[numBytes];
-            Array.Copy(_buffer, _bufferPos, bytes, 0, numBytes);
+            var byteSpan = _buffer.AsSpan(_bufferPos, numBytes);
+            // var bytes = new byte[numBytes];
+            // Array.Copy(_buffer, _bufferPos, bytes, 0, numBytes);
             _bufferPos += numBytes;
-            return bytes;
+            return byteSpan;
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO.Compression;
 using Compression.Data;
 using NirvanaCommon;
 using Version4.Data;
+using Version4.Utilities;
 
 namespace Version4.IO
 {
@@ -43,7 +44,7 @@ namespace Version4.IO
         }
 
         public List<PreloadResult> GetAnnotatedVariants(IndexEntry[] indexEntries, BitArray preloadBitArray,
-            int numPositions)
+            int numPositions, string[] alleles, LongHashTable positionAlleles)
         {
             var results = new List<PreloadResult>(numPositions);
 
@@ -54,27 +55,37 @@ namespace Version4.IO
                 _block.Read(_reader);
                 _block.DecompressDict(_context, _dictionary);
 
-                var reader       = new BufferBinaryReader(_block.UncompressedBytes);
-                int numEntries   = reader.ReadOptInt32();
+                ReadOnlySpan<byte> byteSpan = _block.UncompressedBytes.AsSpan();
+
+                int numEntries   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
                 int lastPosition = 0;
 
                 for (int entryIndex = 0; entryIndex < numEntries; entryIndex++)
                 {
-                    int position = reader.ReadOptInt32() + lastPosition;
+                    int position = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan) + lastPosition;
 
                     if (preloadBitArray.Get(position))
                     {
-                        var    variantType = (VariantType) reader.ReadByte();
-                        string allele      = reader.ReadString();
-                        string json        = reader.ReadString();
+                        var    variantType = (VariantType) SpanBufferBinaryReader.ReadByte(ref byteSpan);
+                        int    alleleIndex = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+                        string allele = alleles[alleleIndex];
 
-                        results.Add(new PreloadResult(position, null, allele, json));
+                        long positionAllele = PositionAllele.Convert(position, allele, variantType);
+                        if (positionAlleles.Contains(positionAllele))
+                        {
+                            string json = SpanBufferBinaryReader.ReadString(ref byteSpan);
+                            results.Add(new PreloadResult(position, null, allele, json));
+                        }
+                        else
+                        {
+                            SpanBufferBinaryReader.SkipString(ref byteSpan);
+                        }
                     }
                     else
                     {
-                        reader.SkipByte();
-                        reader.SkipString();
-                        reader.SkipString();
+                        SpanBufferBinaryReader.SkipByte(ref byteSpan);
+                        SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+                        SpanBufferBinaryReader.SkipString(ref byteSpan);
                     }
 
                     lastPosition = position;
@@ -82,6 +93,25 @@ namespace Version4.IO
             }
 
             return results;
+        }
+        
+        public string[] GetAlleles(in long fileOffset)
+        {
+            _stream.Position = fileOffset;
+            _block.Read(_reader);
+            _block.Decompress(_context);
+            
+            ReadOnlySpan<byte> byteSpan = _block.UncompressedBytes.AsSpan();
+
+            int numAlleles   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+            var alleles = new string[numAlleles];
+
+            for (int index = 0; index < numAlleles; index++)
+            {
+                alleles[index] = SpanBufferBinaryReader.ReadString(ref byteSpan);
+            }
+
+            return alleles;
         }
 
         public void Dispose() => _stream.Dispose();

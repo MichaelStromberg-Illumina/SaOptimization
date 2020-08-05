@@ -59,6 +59,13 @@ namespace Version4.IO
         public void  StartRare()   => InitializeSection(false);
         public void  EndRare()     => UpdateBlockCount();
 
+        public void WriteAlleles(WriteBlock block)
+        {
+            Console.WriteLine($"  - allele index file offset: {_stream.Position:N0}");
+            _indexBuilder.SetAlleleIndexOffset(_stream.Position);
+            block.Write(_writer);
+        }
+
         public void WriteBlock(WriteBlock block)
         {
             _indexBuilder.AddBlock(block.LastPosition, _stream.Position, _useCommon);

@@ -1,4 +1,5 @@
-﻿using Compression.Algorithms;
+﻿using System.Buffers;
+using Compression.Algorithms;
 using Compression.Data;
 using NirvanaCommon;
 
@@ -25,13 +26,12 @@ namespace Version4.Data
         {
             NumCompressedBytes   = reader.ReadOptInt32();
             NumUncompressedBytes = reader.ReadOptInt32() + NumCompressedBytes;
-            // Console.WriteLine($"# compressed bytes: {NumCompressedBytes:N0}, # uncompressed bytes: {NumUncompressedBytes:N0}");
 
             if (CompressedBytes == null || NumCompressedBytes > CompressedBytes.Length)
             {
-                int newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
-                // Console.WriteLine($"Read:       reallocate to {newSize:N0}");
-                CompressedBytes = new byte[newSize];
+                if (CompressedBytes != null) ArrayPool<byte>.Shared.Return(CompressedBytes);
+                var newSize = (int) (NumCompressedBytes * PercentAdditionalBytes);
+                CompressedBytes = ArrayPool<byte>.Shared.Rent(newSize);
             }
 
             reader.ReadOptBytes(CompressedBytes, NumCompressedBytes);
@@ -53,8 +53,9 @@ namespace Version4.Data
 
         private void Resize()
         {
+            if (UncompressedBytes != null) ArrayPool<byte>.Shared.Return(UncompressedBytes);
             var newSize = (int) (NumUncompressedBytes * PercentAdditionalBytes);
-            UncompressedBytes = new byte[newSize];
+            UncompressedBytes = ArrayPool<byte>.Shared.Rent(newSize);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace Version4
 {
     public static class V4Preloader
     {
-        public static int Preload(Chromosome chromosome, List<int> positions)
+        public static int Preload(Chromosome chromosome, List<int> positions, LongHashTable positionAlleles)
         {
             List<PreloadResult> results;
 
@@ -28,7 +28,8 @@ namespace Version4
                 ChromosomeIndex index        = indexReader.Load(chromosome);
                 IndexEntry[]    indexEntries = index.GetIndexEntries(positions);
 
-                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, positions.Count);
+                string[] alleles = saReader.GetAlleles(index.AlleleIndexOffset);
+                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, positions.Count, alleles, positionAlleles);
             }
 
             return results.Count;

@@ -4,6 +4,7 @@ namespace Version4.Data
 {
     public class IndexBuilder
     {
+        private long _alleleIndexOffset;
         private readonly ChromosomeIndex[] _chromsomeIndices;
         private readonly List<IndexEntry>  _commonEntries = new List<IndexEntry>();
         private readonly List<IndexEntry>  _rareEntries   = new List<IndexEntry>();
@@ -25,9 +26,11 @@ namespace Version4.Data
         public void FinalizeChromosome(ushort refIndex, BitArray bitArray)
         {
             _chromsomeIndices[refIndex] =
-                new ChromosomeIndex(bitArray, _commonEntries.ToArray(), _rareEntries.ToArray());
+                new ChromosomeIndex(bitArray, _commonEntries.ToArray(), _rareEntries.ToArray(), _alleleIndexOffset);
             _commonEntries.Clear();
             _rareEntries.Clear();
         }
+
+        public void SetAlleleIndexOffset(in long fileOffset) => _alleleIndexOffset = fileOffset;
     }
 }

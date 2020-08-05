@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Compression.Algorithms;
 using Compression.Data;
 using NirvanaCommon;
@@ -13,33 +14,35 @@ namespace Version4.Data
         public readonly BitArray     BitArray;
         public readonly IndexEntry[] Common;
         public readonly IndexEntry[] Rare;
-        
-        public ChromosomeIndex(BitArray bitArray, IndexEntry[] common, IndexEntry[] rare)
+        public readonly long         AlleleIndexOffset;
+
+        public ChromosomeIndex(BitArray bitArray, IndexEntry[] common, IndexEntry[] rare, long alleleIndexOffset)
         {
-            BitArray = bitArray;
-            Common   = common;
-            Rare     = rare;
+            BitArray          = bitArray;
+            Common            = common;
+            Rare              = rare;
+            AlleleIndexOffset = alleleIndexOffset;
         }
 
         public static ChromosomeIndex Read(ExtendedBinaryReader reader, Block block, ZstdContext context)
         {
             block.Read(reader);
             block.Decompress(context);
-            
-            var bufferReader = new BufferBinaryReader(block.UncompressedBytes);
-            
-            int    numBytes  = bufferReader.ReadOptInt32();
-            byte[] byteArray = bufferReader.ReadBytes(numBytes);
 
-            var intArray = new int[numBytes / sizeof(int)];
-            Buffer.BlockCopy(byteArray, 0, intArray, 0, numBytes);
-            
-            var bitArray = new BitArray(intArray);
+            var bufferReader = new BufferBinaryReader(block.UncompressedBytes);
+
+            int        numBytes = bufferReader.ReadOptInt32();
+            Span<byte> byteSpan = bufferReader.ReadBytes(numBytes);
+
+            int[] intArray = MemoryMarshal.Cast<byte, int>(byteSpan).ToArray();
+            var   bitArray = new BitArray(intArray);
+
+            long alleleIndexOffset = bufferReader.ReadOptInt64();
 
             IndexEntry[] commonEntries = ReadSection(bufferReader);
             IndexEntry[] rareEntries   = ReadSection(bufferReader);
 
-            return new ChromosomeIndex(bitArray, commonEntries, rareEntries);
+            return new ChromosomeIndex(bitArray, commonEntries, rareEntries, alleleIndexOffset);
         }
 
         private static IndexEntry[] ReadSection(BufferBinaryReader reader)
@@ -81,6 +84,8 @@ namespace Version4.Data
                 
                 memoryWriter.WriteOpt(byteArray.Length);
                 memoryWriter.Write(byteArray);
+                memoryWriter.WriteOpt(AlleleIndexOffset);
+                Console.WriteLine($"  - allele index file offset: {AlleleIndexOffset:N0}");
                 WriteSection(memoryWriter, Common);
                 WriteSection(memoryWriter, Rare);
 
@@ -94,8 +99,8 @@ namespace Version4.Data
             int numCompressedBytes = ZstandardStatic.Compress(bytes, numBytes,
                 compressedBytes, compressedBufferSize, context);
 
-            Console.WriteLine(
-                $"ChromosomeIndex.Write: uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes");
+            double percent = numCompressedBytes / (double) numBytes * 100.0;
+            Console.WriteLine($"  - uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes ({percent:0.0}%)");
             
             var block = new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
             block.Write(writer);
