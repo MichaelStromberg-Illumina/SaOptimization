@@ -16,7 +16,7 @@ namespace Version2.IO
         
         private readonly long[] _chromosomeOffsets;
         
-        private ushort _currentRefIndex = UInt16.MaxValue;
+        private ushort _currentRefIndex = ushort.MaxValue;
         private ChromosomeIndex _currentIndex;
 
         public IndexReader(Stream stream, Block block, ZstdContext context, ZstdDictionary dict, bool leaveOpen = false)
@@ -61,7 +61,7 @@ namespace Version2.IO
             long fileOffset = _chromosomeOffsets[refIndex];
             _stream.Position = fileOffset;
 
-            var index = ChromosomeIndex.Read(_reader, _block, _context, _dict);
+            ChromosomeIndex index = ChromosomeIndex.Read(_reader, _block, _context, _dict);
             _currentIndex    = index;
             _currentRefIndex = refIndex;
 

@@ -35,7 +35,7 @@ namespace CreateGnomadVersion4
 
         private static async Task<int> SortAndWriteBlocks(AlleleFrequencyWriter writer, ChannelReader<WriteBlock> compressedBlocks)
         {
-            int currentIndex = 0;
+            var currentIndex = 0;
             var comparer     = new BlockComparer();
             var heap         = new MinHeap<WriteBlock>(comparer.Compare);
 
@@ -130,7 +130,7 @@ namespace CreateGnomadVersion4
                 bytes = stream.ToArray();
             }
 
-            return new ConvertedData(lastPosition, entries.Count, bytes, index);
+            return new ConvertedData(lastPosition, bytes, index);
         }
         
         private static ChannelReader<WriteBlock> CompressByteArrays2(ChannelReader<ConvertedData>[] inputs, ThreadLocal<ZstdContext> context, ZstdDictionary dict)

@@ -240,7 +240,7 @@ namespace NirvanaCommon
                 int h1 = GetHash1(hash, blockLength) + blockLength;
                 int h2 = GetHash2(hash, blockLength) + blockLength2;
                 
-                ushort f = (ushort)(hash ^ (hash >> 32));
+                var f = (ushort)(hash ^ (hash >> 32));
 
                 if (index < blockLength)
                 {

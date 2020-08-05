@@ -56,9 +56,9 @@ namespace Version3.IO
 
                 var reader       = new BufferBinaryReader(_block.UncompressedBytes);
                 int numEntries   = reader.ReadOptInt32();
-                int lastPosition = 0;
+                var lastPosition = 0;
 
-                for (int entryIndex = 0; entryIndex < numEntries; entryIndex++)
+                for (var entryIndex = 0; entryIndex < numEntries; entryIndex++)
                 {
                     int position = reader.ReadOptInt32() + lastPosition;
 

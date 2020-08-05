@@ -11,7 +11,7 @@ namespace NirvanaCommon
             var newPositions = new List<int>(numPositions);
 
             positions.Shuffle();
-            for (int i = 0; i < numPositions; i++) newPositions.Add(positions[i]);
+            for (var i = 0; i < numPositions; i++) newPositions.Add(positions[i]);
 
             return newPositions.OrderBy(x => x).ToList();
         }

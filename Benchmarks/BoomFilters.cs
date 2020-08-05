@@ -33,7 +33,7 @@ namespace Benchmarks
                 100000,
                 1000000,
                 10000000,
-                100000000,
+                100000000
             };
 
             _bloomFilter = new BloomFilter(keys.Count, TargetErrorRate);

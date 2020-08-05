@@ -6,9 +6,9 @@ using Version4;
 
 namespace PreloadVersion4
 {
-    static class Program
+    internal static class Program
     {
-        static void Main()
+        private static void Main()
         {
             (List<int> positions, LongHashTable positionAlleles) =
                 Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);

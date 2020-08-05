@@ -7,7 +7,6 @@ namespace PreloadBaseline.Nirvana
     public sealed class NsaIndex
     {
         private readonly Dictionary<ushort, List<NsaIndexBlock>> _chromBlocks;
-        private ushort _chromIndex = ushort.MaxValue;
 
         public readonly GenomeAssembly Assembly;
         public readonly DataSourceVersion Version;

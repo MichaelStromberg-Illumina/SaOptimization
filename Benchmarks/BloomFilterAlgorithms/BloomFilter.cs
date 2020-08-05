@@ -6,7 +6,6 @@ namespace Benchmarks.BloomFilterAlgorithms
     /// <summary>
 	/// Bloom filter.
 	/// </summary>
-	/// <typeparam name="T">Item type </typeparam>
 	public class BloomFilter
 	{
 		private readonly int _hashFunctionCount;
@@ -17,7 +16,6 @@ namespace Benchmarks.BloomFilterAlgorithms
 		/// </summary>
 		/// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
 		/// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
-		/// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
 		public BloomFilter(int capacity, double errorRate)
 			: this(capacity, errorRate, BestM(capacity, errorRate), BestK(capacity, errorRate))
 		{
@@ -28,7 +26,6 @@ namespace Benchmarks.BloomFilterAlgorithms
 		/// </summary>
 		/// <param name="capacity">The anticipated number of items to be added to the filter. More than this number of items can be added, but the error rate will exceed what is expected.</param>
 		/// <param name="errorRate">The accepable false-positive rate (e.g., 0.01F = 1%)</param>
-		/// <param name="hashFunction">The function to hash the input values. Do not use GetHashCode(). If it is null, and T is string or int a hash function will be provided for you.</param>
 		/// <param name="m">The number of elements in the BitArray.</param>
 		/// <param name="k">The number of hash functions to use.</param>
 		public BloomFilter(int capacity, double errorRate, int m, int k)
@@ -36,18 +33,20 @@ namespace Benchmarks.BloomFilterAlgorithms
 			// validate the params are in range
 			if (capacity < 1)
 			{
-				throw new ArgumentOutOfRangeException("capacity", capacity, "capacity must be > 0");
+				throw new ArgumentOutOfRangeException(nameof(capacity), capacity, "capacity must be > 0");
 			}
 
 			if (errorRate >= 1 || errorRate <= 0)
 			{
-				throw new ArgumentOutOfRangeException("errorRate", errorRate, string.Format("errorRate must be between 0 and 1, exclusive. Was {0}", errorRate));
+				throw new ArgumentOutOfRangeException(nameof(errorRate), errorRate,
+                    $"errorRate must be between 0 and 1, exclusive. Was {errorRate}");
 			}
 
 			// from overflow in bestM calculation
 			if (m < 1)
 			{
-				throw new ArgumentOutOfRangeException(string.Format("The provided capacity and errorRate values would result in an array of length > int.MaxValue. Please reduce either of these values. Capacity: {0}, Error rate: {1}", capacity, errorRate));
+				throw new ArgumentOutOfRangeException(
+                    $"The provided capacity and errorRate values would result in an array of length > int.MaxValue. Please reduce either of these values. Capacity: {capacity}, Error rate: {errorRate}");
 			}
 
 			_hashFunctionCount = k;
@@ -110,37 +109,19 @@ namespace Benchmarks.BloomFilterAlgorithms
 		/// <returns> The <see cref="int"/>. </returns>
 		private static int BestM(int capacity, double errorRate)
 		{
-			return (int)Math.Ceiling(capacity * Math.Log(errorRate, (1.0 / Math.Pow(2, Math.Log(2.0)))));
-		}
-
-		/// <summary>
-		/// The best error rate.
-		/// </summary>
-		/// <param name="capacity"> The capacity. </param>
-		/// <returns> The <see cref="float"/>. </returns>
-		private static double BestErrorRate(int capacity)
-		{
-            double c = 1.0 / capacity;
-			if (c != 0)
-			{
-				return c;
-			}
-
-			// default
-			// http://www.cs.princeton.edu/courses/archive/spring02/cs493/lec7.pdf
-			return Math.Pow(0.6185, int.MaxValue / (double)capacity);
+			return (int)Math.Ceiling(capacity * Math.Log(errorRate, 1.0 / Math.Pow(2, Math.Log(2.0))));
 		}
 
         public static int HashUInt64(ulong key)
         {
             unchecked
             {
-                key = (~key) + (key << 18); // key = (key << 18) - key - 1;
-                key = key ^ (key >> 31);
-                key = key * 21; // key = (key + (key << 2)) + (key << 4);
-                key = key ^ (key >> 11);
-                key = key + (key << 6);
-                key = key ^ (key >> 22);
+                key = ~key + (key << 18); // key = (key << 18) - key - 1;
+                key ^= key >> 31;
+                key *= 21; // key = (key + (key << 2)) + (key << 4);
+                key ^= key >> 11;
+                key += key << 6;
+                key ^= key >> 22;
                 return (int) key;
             }
         }
@@ -154,7 +135,7 @@ namespace Benchmarks.BloomFilterAlgorithms
 		/// <returns> The <see cref="int"/>. </returns>
 		private int ComputeHash(int primaryHash, int secondaryHash, int i)
 		{
-			int resultingHash = (primaryHash + (i * secondaryHash)) % _hashBits.Count;
+			int resultingHash = (primaryHash + i * secondaryHash) % _hashBits.Count;
 			return Math.Abs(resultingHash);
 		}
 	}

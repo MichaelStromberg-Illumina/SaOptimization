@@ -8,17 +8,15 @@ namespace PreloadBaseline.Nirvana
     public sealed class NsaBlock : IDisposable
     {
         private readonly ICompressionAlgorithm _compressionAlgorithm;
-        private readonly byte[] _compressedBlock;
-        private readonly byte[] _uncompressedBlock;
-        private int _compressedLength;
-        private int _uncompressedLength;
-        private int _firstPosition;
-        private int _lastPosition;
-        private int _count;
+        private readonly byte[]                _compressedBlock;
+        private readonly byte[]                _uncompressedBlock;
+        private          int                   _compressedLength;
+        private          int                   _uncompressedLength;
+        private          int                   _firstPosition;
+        private          int                   _count;
 
         private readonly ExtendedBinaryReader _blockReader;
-        private readonly MemoryStream _blockStream;
-
+        private readonly MemoryStream         _blockStream;
 
         public NsaBlock(ICompressionAlgorithm compressionAlgorithm, int size)
         {
@@ -35,8 +33,7 @@ namespace PreloadBaseline.Nirvana
         {
             _compressedLength = reader.ReadOptInt32();
             _firstPosition    = reader.ReadOptInt32();
-            //_lastPosition   = reader.ReadOptInt32();
-            _count = reader.ReadOptInt32();
+            _count            = reader.ReadOptInt32();
             reader.Read(_compressedBlock, 0, _compressedLength);
 
             _uncompressedLength = _compressionAlgorithm.Decompress(_compressedBlock, _compressedLength,

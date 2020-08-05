@@ -28,7 +28,7 @@ namespace Version2.Data
 
             if (CompressedBytes == null || NumCompressedBytes > CompressedBytes.Length)
             {
-                int newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
+                var newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
                 CompressedBytes = new byte[newSize];
             }
 
@@ -39,7 +39,7 @@ namespace Version2.Data
         {
             if (UncompressedBytes == null || NumUncompressedBytes > UncompressedBytes.Length)
             {
-                int newSize = (int)(NumUncompressedBytes * PercentAdditionalBytes);
+                var newSize = (int)(NumUncompressedBytes * PercentAdditionalBytes);
                 UncompressedBytes = new byte[newSize];
             }
 

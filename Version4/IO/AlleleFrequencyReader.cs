@@ -5,7 +5,6 @@ using System.IO.Compression;
 using Compression.Data;
 using NirvanaCommon;
 using Version4.Data;
-using Version4.Utilities;
 
 namespace Version4.IO
 {
@@ -17,7 +16,6 @@ namespace Version4.IO
         private readonly ZstdContext          _context;
 
         private readonly ZstdDictionary _dictionary;
-        public ZstdDictionary Dictionary => _dictionary;
 
         public AlleleFrequencyReader(Stream stream, Block block, ZstdContext context, bool leaveOpen = false)
         {
@@ -58,9 +56,9 @@ namespace Version4.IO
                 ReadOnlySpan<byte> byteSpan = _block.UncompressedBytes.AsSpan();
 
                 int numEntries   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
-                int lastPosition = 0;
+                var lastPosition = 0;
 
-                for (int entryIndex = 0; entryIndex < numEntries; entryIndex++)
+                for (var entryIndex = 0; entryIndex < numEntries; entryIndex++)
                 {
                     int position = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan) + lastPosition;
 
@@ -106,7 +104,7 @@ namespace Version4.IO
             int numAlleles   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
             var alleles = new string[numAlleles];
 
-            for (int index = 0; index < numAlleles; index++)
+            for (var index = 0; index < numAlleles; index++)
             {
                 alleles[index] = SpanBufferBinaryReader.ReadString(ref byteSpan);
             }

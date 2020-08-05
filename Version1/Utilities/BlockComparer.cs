@@ -8,8 +8,7 @@ namespace Version1.Utilities
         public int Compare(WriteBlock a, WriteBlock b)
         {
             if (ReferenceEquals(a,    b)) return 0;
-            if (ReferenceEquals(null, b)) return 1;
-            return a.Index.CompareTo(b.Index);
+            return ReferenceEquals(null, b) ? 1 : a.Index.CompareTo(b.Index);
         }
     }
 }

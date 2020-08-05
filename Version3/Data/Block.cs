@@ -29,7 +29,7 @@ namespace Version3.Data
 
             if (CompressedBytes == null || NumCompressedBytes > CompressedBytes.Length)
             {
-                int newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
+                var newSize = (int)(NumCompressedBytes * PercentAdditionalBytes);
                 // Console.WriteLine($"Read:       reallocate to {newSize:N0}");
                 CompressedBytes = new byte[newSize];
             }

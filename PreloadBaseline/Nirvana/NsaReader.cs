@@ -21,7 +21,6 @@ namespace PreloadBaseline.Nirvana
         public bool IsArray { get; }
         public bool IsPositional { get; }
         private readonly List<AnnotationItem> _annotations;
-        private readonly int _blockSize;
 
         private readonly ExtendedBinaryReader _annotationReader;
         private readonly MemoryStream _annotationStream;
@@ -31,7 +30,6 @@ namespace PreloadBaseline.Nirvana
         public NsaReader(Stream dataStream, Stream indexStream, int blockSize = SaCommon.DefaultBlockSize)
         {
             _stream    = dataStream;
-            _blockSize = blockSize;
             _reader    = new ExtendedBinaryReader(_stream);
             _block     = new NsaBlock(new Zstandard(), blockSize);
 

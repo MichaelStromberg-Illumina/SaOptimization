@@ -169,7 +169,7 @@ namespace Version2.Data
 
         private static int BinarySearch(IndexEntry[] entries, int position)
         {
-            int begin = 0;
+            var begin = 0;
             int end = entries.Length - 1;
 
             while (begin <= end)

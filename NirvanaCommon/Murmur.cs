@@ -51,7 +51,7 @@ namespace NirvanaCommon
             uint k1;
             int  numInts = uintSpan.Length;
 
-            for (int i = 0; i < numInts; i++)
+            for (var i = 0; i < numInts; i++)
             {
                 k1 = uintSpan[i];
 

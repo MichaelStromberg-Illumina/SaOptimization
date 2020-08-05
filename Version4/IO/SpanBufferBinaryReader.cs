@@ -16,7 +16,7 @@ namespace Version4.IO
         {
             var count = 0;
             var shift = 0;
-            int index = 0;
+            var index = 0;
 
             while (shift != 35)
             {
@@ -38,10 +38,10 @@ namespace Version4.IO
         {
             int numBytes = ReadOptInt32(ref byteSpan);
             if (numBytes == 0) return string.Empty;
-            
-            int maxBufferSize = Encoding.GetMaxCharCount(numBytes);
-            var charBuffer = ArrayPool<char>.Shared.Rent(maxBufferSize);
-            var charSpan = charBuffer.AsSpan();
+
+            int        maxBufferSize = Encoding.GetMaxCharCount(numBytes);
+            char[]     charBuffer    = ArrayPool<char>.Shared.Rent(maxBufferSize);
+            Span<char> charSpan      = charBuffer.AsSpan();
 
             int numChars = Decoder.GetChars(byteSpan.Slice(0, numBytes), charSpan, true);
             charSpan = charSpan.Slice(0, numChars);

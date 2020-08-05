@@ -9,7 +9,7 @@ using Version2.IO;
 
 namespace CreateGnomadVersion2
 {
-    static class Program
+    internal static class Program
     {
         private static void Main()
         {

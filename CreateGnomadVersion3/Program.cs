@@ -9,9 +9,9 @@ using Version3.IO;
 
 namespace CreateGnomadVersion3
 {
-    static class Program
+    internal static class Program
     {
-        static void Main()
+        private static void Main()
         {
             byte[] dictionaryBytes = File.ReadAllBytes(GnomAD.DictionaryPath);
             var    dict            = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);

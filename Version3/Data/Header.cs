@@ -43,10 +43,10 @@ namespace Version3.Data
             string identifier        = reader.ReadString();
             byte   fileFormatVersion = reader.ReadByte();
             int    numRefSeqs        = reader.ReadOptInt32();
-            GenomeAssembly assembly = (GenomeAssembly)reader.ReadByte();
-            string jsonKey = reader.ReadString();
+            var    assembly          = (GenomeAssembly) reader.ReadByte();
+            string jsonKey           = reader.ReadString();
 
-            var dataSourceVersion = DataSourceVersion.Read(reader);
+            DataSourceVersion dataSourceVersion = DataSourceVersion.Read(reader);
 
             int numDictBytes = reader.ReadOptInt32();
             byte[] compressionDictionary = reader.ReadBytes(numDictBytes);

@@ -12,9 +12,6 @@ namespace Benchmarks.BloomFilterAlgorithms
         private readonly int _k;
         private readonly ulong _seed;
 
-        public int NumBits          => _m;
-        public int NumHashFunctions => _k;
-
         public BloomFilterOpt(int capacity, double errorRate) : this(capacity, BestM(capacity, errorRate),
             BestK(capacity, errorRate))
         {

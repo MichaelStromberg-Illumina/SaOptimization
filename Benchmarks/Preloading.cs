@@ -37,7 +37,7 @@ namespace Benchmarks
         [Benchmark(Baseline = true)]
         public int RareBitVector_5pct()
         {
-            string threshold            = "0.05";
+            const string threshold = "0.05";
             int    numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, _positions, threshold);
             if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
             return numPreloadedVariants;

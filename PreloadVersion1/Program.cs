@@ -6,9 +6,9 @@ using Version1;
 
 namespace PreloadVersion1
 {
-    static class Program
+    internal static class Program
     {
-        static void Main()
+        private static void Main()
         {
             (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
 

@@ -126,7 +126,7 @@ namespace CreateGnomadVersion1
                 bytes = stream.ToArray();
             }
 
-            return new ConvertedData(lastPosition, entries.Count, bytes, index);
+            return new ConvertedData(lastPosition, bytes, index);
         }
         
         private static ChannelReader<WriteBlock> CompressByteArrays2(ChannelReader<ConvertedData>[] inputs, ThreadLocal<ZstdContext> context, ZstdDictionary dict)

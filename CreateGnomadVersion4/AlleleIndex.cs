@@ -8,7 +8,6 @@ using Compression.Algorithms;
 using Compression.Data;
 using NirvanaCommon;
 using Version4.Data;
-using Version4.Utilities;
 
 namespace CreateGnomadVersion4
 {
@@ -27,7 +26,7 @@ namespace CreateGnomadVersion4
             var alleleToIndex = new Dictionary<string, int>(numAlleles);
             for (var i = 0; i < numAlleles; i++) alleleToIndex[sortedAlleles[i]] = i;
 
-            var alleleBlock = CreateBlock(sortedAlleles);
+            WriteBlock alleleBlock = CreateBlock(sortedAlleles);
             
             return (alleleBlock, alleleToIndex);
         }

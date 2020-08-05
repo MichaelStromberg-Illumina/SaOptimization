@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Benchmarks.HashSetAlgorithms
+namespace NirvanaCommon
 {
     public static class PrimeUtilities
     {
@@ -26,9 +26,9 @@ namespace Benchmarks.HashSetAlgorithms
             }
 
             // Outside of our predefined table. Compute the hard way.
-            for (int i = (min | 1); i < int.MaxValue; i += 2)
+            for (int i = min | 1; i < int.MaxValue; i += 2)
             {
-                if (IsPrime(i) && ((i - 1) % HashPrime != 0))
+                if (IsPrime(i) && (i - 1) % HashPrime != 0)
                     return i;
             }
             return min;
@@ -38,8 +38,8 @@ namespace Benchmarks.HashSetAlgorithms
         {
             if ((candidate & 1) != 0)
             {
-                int limit = (int)Math.Sqrt(candidate);
-                for (int divisor = 3; divisor <= limit; divisor += 2)
+                var limit = (int)Math.Sqrt(candidate);
+                for (var divisor = 3; divisor <= limit; divisor += 2)
                 {
                     if (candidate % divisor == 0) return false;
                 }
