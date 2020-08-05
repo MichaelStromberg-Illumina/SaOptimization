@@ -1,9 +1,9 @@
 ﻿using System;
-using NirvanaCommon;
+using System.Runtime.CompilerServices;
 
-namespace Version2.Utilities
+namespace NirvanaCommon
 {
-    public static class VariantTypeUtils
+    public static class VariantTypeUtilities
     {
         public static VariantType GetVariantType(string refAllele, string altAllele)
         {
@@ -22,7 +22,11 @@ namespace Version2.Utilities
 
             return variantType;
         }
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string GetAllele(string refAllele, string altAllele, VariantType variantType) =>
+            variantType == VariantType.deletion ? refAllele : altAllele;
+
         public static void CheckVariantType(VariantType variantType)
         {
             switch (variantType)

@@ -17,7 +17,7 @@ namespace Benchmarks
         private readonly List<int> _positions;
 
         public PreloadingTN() =>
-            _positions = Preloader.Preloader.GetPositions(Datasets.TumorNormalPreloadPath);
+            (_positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
 
         [Benchmark(Baseline = true)]
         public int Current() => Baseline.Preload(GRCh37.Chr1, _positions);

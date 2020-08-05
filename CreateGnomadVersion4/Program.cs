@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using Compression.Data;
@@ -25,18 +26,25 @@ namespace CreateGnomadVersion4
             {
                 var bitArray = new BitArray(GRCh37.Chr1.Length);
 
+                Console.WriteLine("- create allele index:");
+                var alleleIndexBenchmark = new Benchmark();
+                (WriteBlock alleleBlock, Dictionary<string, int> alleleToIndex) = AlleleIndex.GetAllelesAsync(Pedigree.CommonTsvPath, Pedigree.RareTsvPath).Result;
+                Console.WriteLine($"  - {alleleToIndex.Count} alleles found");
+                writer.WriteAlleles(alleleBlock);
+                ShowElapsedTime(alleleIndexBenchmark);
+
                 Console.WriteLine("- creating common blocks:");
                 var commonBenchmark = new Benchmark();
                 writer.StartCommon();
                 // bit array is only used for rare variants
-                CompressPipeline.RunPipeline(Pedigree.CommonTsvPath, SaConstants.MaxCommonEntries, dict, writer, null).Wait();
+                CompressPipeline.RunPipeline(Pedigree.CommonTsvPath, SaConstants.MaxCommonEntries, dict, writer, alleleToIndex, null).Wait();
                 writer.EndCommon();
                 ShowElapsedTime(commonBenchmark);
 
                 Console.WriteLine("- creating rare blocks:");
                 var rareBenchmark = new Benchmark();
                 writer.StartRare();
-                CompressPipeline.RunPipeline(Pedigree.RareTsvPath, SaConstants.MaxRareEntries, dict, writer, bitArray).Wait();
+                CompressPipeline.RunPipeline(Pedigree.RareTsvPath, SaConstants.MaxRareEntries, dict, writer, alleleToIndex, bitArray).Wait();
                 writer.EndRare();
                 ShowElapsedTime(rareBenchmark);
 

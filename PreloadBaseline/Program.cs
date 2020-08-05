@@ -9,7 +9,7 @@ namespace PreloadBaseline
     {
         static void Main()
         {
-            List<int> positions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
+            (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
 
             int numPreloaded = Baseline.Preload(GRCh37.Chr1, positions);
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");

@@ -109,8 +109,8 @@ namespace CreateGnomadVersion2
                 
                 foreach (TsvEntry entry in entries)
                 {
-                    VariantType variantType = VariantTypeUtils.GetVariantType(entry.RefAllele, entry.AltAllele);
-                    VariantTypeUtils.CheckVariantType(variantType);
+                    VariantType variantType = VariantTypeUtilities.GetVariantType(entry.RefAllele, entry.AltAllele);
+                    VariantTypeUtilities.CheckVariantType(variantType);
 
                     string allele        = variantType == VariantType.deletion ? entry.RefAllele : entry.AltAllele;
                     int    deltaPosition = entry.Position - lastPosition;

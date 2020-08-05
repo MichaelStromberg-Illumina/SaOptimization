@@ -3,5 +3,6 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputPath>..\bin\$(Configuration)</OutputPath>
         <LangVersion>latest</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 </Project>

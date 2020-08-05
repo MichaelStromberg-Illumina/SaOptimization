@@ -10,10 +10,11 @@ namespace PreloadVersion1
     {
         static void Main()
         {
-            List<int> positions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
-            
-            var benchmark = new Benchmark();
+            (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
+
+            var benchmark    = new Benchmark();
             int numPreloaded = V1Preloader.Preload(GRCh37.Chr1, positions, "0.05");
+
             Console.WriteLine();
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");
             Console.WriteLine($"- elapsed time: {benchmark.GetElapsedTime()}");

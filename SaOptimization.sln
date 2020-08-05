@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreloadVersion4", "PreloadV
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateGnomadVersion4", "CreateGnomadVersion4\CreateGnomadVersion4.csproj", "{FDAC6F14-FAD9-46B9-881A-AEABE802717B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{45245C1B-AC0A-426C-8559-5673713D35F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,9 @@ Global
 		{FDAC6F14-FAD9-46B9-881A-AEABE802717B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDAC6F14-FAD9-46B9-881A-AEABE802717B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDAC6F14-FAD9-46B9-881A-AEABE802717B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45245C1B-AC0A-426C-8559-5673713D35F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45245C1B-AC0A-426C-8559-5673713D35F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45245C1B-AC0A-426C-8559-5673713D35F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45245C1B-AC0A-426C-8559-5673713D35F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

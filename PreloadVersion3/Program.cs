@@ -10,7 +10,7 @@ namespace PreloadVersion3
     {
         static void Main()
         {
-            List<int> positions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
+            (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
             
             var benchmark = new Benchmark();
             int numPreloaded = V3Preloader.Preload(GRCh37.Chr1, positions);

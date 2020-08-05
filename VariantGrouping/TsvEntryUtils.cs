@@ -4,8 +4,6 @@ namespace VariantGrouping
 {
     public static class TsvEntryUtils
     {
-        private const double CommonThreshold = 0.05;
-        
         public static TsvEntry GetTsvEntry(string line)
         {
             string[] cols = line.Split('\t');
@@ -14,12 +12,9 @@ namespace VariantGrouping
             int    position  = int.Parse(cols[0]);
             string refAllele = cols[1];
             string altAllele = cols[2];
-            double popMax    = double.Parse(cols[4]);
             string json      = cols[5];
 
-            bool isCommon = popMax >= CommonThreshold;
-
-            return new TsvEntry(position, refAllele, altAllele, json, isCommon);
+            return new TsvEntry(position, refAllele, altAllele, json);
         }
     }
 }

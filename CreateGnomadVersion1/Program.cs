@@ -13,20 +13,22 @@ namespace CreateGnomadVersion1
     {
         static void Main(string [] args)
         {
-            if (args.Length != 1)
+            if (args.Length != 2)
             {
-                Console.WriteLine($"USAGE: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} <common threshold>");
+                Console.WriteLine($"USAGE: {Path.GetFileName(Environment.GetCommandLineArgs()[0])} <SA directory> <common threshold>");
                 Environment.Exit(1);
             }
-            
-            string commonThreshold = args[0];
 
-            string commonTsvPath = $"E:\\Data\\Nirvana\\NewSA\\gnomAD_chr1_common_{commonThreshold}.tsv.gz";
-            string rareTsvPath   = $"E:\\Data\\Nirvana\\NewSA\\gnomAD_chr1_rare_{commonThreshold}.tsv.gz";
-            string saPath        = $"E:\\Data\\Nirvana\\NewSA\\gnomad_chr1_v1_{commonThreshold}.nsa";
+            string saDir       = args[0];
+            string commonThreshold = args[1];
+
+            string commonTsvPath = Path.Combine(saDir, $"gnomAD_chr1_common_{commonThreshold}.tsv.gz");
+            string rareTsvPath   = Path.Combine(saDir, $"gnomAD_chr1_rare_{commonThreshold}.tsv.gz");
+            string saPath        = Path.Combine(saDir, $"gnomad_chr1_v1_{commonThreshold}.nsa");
             string indexPath     = saPath + ".idx";
+            string dictPath      = Path.Combine(saDir, "gnomad.dict");
             
-            byte[] dictionaryBytes = File.ReadAllBytes(GnomAD.DictionaryPath);
+            byte[] dictionaryBytes = File.ReadAllBytes(dictPath);
             var    dict            = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);
 
             ChromosomeIndex[] chromosomeIndices;

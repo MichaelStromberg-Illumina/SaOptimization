@@ -3,4 +3,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <OutputPath>..\bin\$(Configuration)</OutputPath>
     </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\NirvanaCommon\NirvanaCommon.csproj" />
+    </ItemGroup>
 </Project>

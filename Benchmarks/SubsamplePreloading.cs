@@ -18,14 +18,14 @@ namespace Benchmarks
         private readonly List<int>[] _positionsArray = new List<int>[MaxSamples + 1];
 
         public int[] NumSamplesValues => new[] {100_000, 10_000, 1_000, 100, 10, 1};
-        
+
         [ParamsSource(nameof(NumSamplesValues))]
         // ReSharper disable once UnassignedField.Global
         public int NumSamples;
 
         public SubsamplePreloading()
         {
-            List<int> tempPositions = Preloader.Preloader.GetPositions(Datasets.PedigreePreloadPath);
+            (List<int> tempPositions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
 
             foreach (int numSamples in NumSamplesValues)
             {
@@ -38,7 +38,7 @@ namespace Benchmarks
 
         [Benchmark]
         public int V1() => V1Preloader.Preload(GRCh37.Chr1, _positionsArray[NumSamples], "0.05");
-        
+
         [Benchmark]
         public int V2() => V2Preloader.Preload(GRCh37.Chr1, _positionsArray[NumSamples]);
     }

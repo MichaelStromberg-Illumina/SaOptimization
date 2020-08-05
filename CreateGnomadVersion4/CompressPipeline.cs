@@ -19,11 +19,11 @@ namespace CreateGnomadVersion4
     public static class CompressPipeline
     {
         public static async Task RunPipeline(string tsvPath, int maxBlockSize, ZstdDictionary dict,
-            AlleleFrequencyWriter writer, BitArray bitArray)
+            AlleleFrequencyWriter writer, Dictionary<string, int> alleleToIndex, BitArray bitArray)
         {
             var context = new ThreadLocal<ZstdContext>(() => new ZstdContext(CompressionMode.Compress));
             
-            ChannelReader<ConvertedData> byteGen = GetByteArrays(tsvPath, maxBlockSize, bitArray);
+            ChannelReader<ConvertedData> byteGen = GetByteArrays(tsvPath, maxBlockSize, alleleToIndex, bitArray);
             ChannelReader<WriteBlock> compressedBlocks =
                 CompressByteArrays2(Split(byteGen, Environment.ProcessorCount, 2), context, dict);
 
@@ -53,7 +53,8 @@ namespace CreateGnomadVersion4
             return currentIndex;
         }
 
-        private static ChannelReader<ConvertedData> GetByteArrays(string tsvPath, int maxBlockSize, BitArray bitArray)
+        private static ChannelReader<ConvertedData> GetByteArrays(string tsvPath, int maxBlockSize,
+            Dictionary<string, int> alleleToIndex, BitArray bitArray)
         {
             var output = Channel.CreateBounded<ConvertedData>(10);
 
@@ -76,7 +77,7 @@ namespace CreateGnomadVersion4
                         
                         if (entries.Count >= maxBlockSize && lastPosition != entry.Position)
                         {
-                            await output.Writer.WriteAsync(GetBytes(entries, index++));
+                            await output.Writer.WriteAsync(GetBytes(entries, index++, alleleToIndex));
                             entries.Clear();
                         }
 
@@ -86,7 +87,7 @@ namespace CreateGnomadVersion4
 
                     if (entries.Count > 0)
                     {
-                        await output.Writer.WriteAsync(GetBytes(entries, index));
+                        await output.Writer.WriteAsync(GetBytes(entries, index, alleleToIndex));
                     }
                 }
 
@@ -96,7 +97,7 @@ namespace CreateGnomadVersion4
             return output;
         }
 
-        private static ConvertedData GetBytes(List<TsvEntry> entries, int index)
+        private static ConvertedData GetBytes(List<TsvEntry> entries, int index, Dictionary<string, int> alleleToIndex)
         {
             byte[] bytes;
 
@@ -109,15 +110,18 @@ namespace CreateGnomadVersion4
                 
                 foreach (TsvEntry entry in entries)
                 {
-                    VariantType variantType = VariantTypeUtils.GetVariantType(entry.RefAllele, entry.AltAllele);
-                    VariantTypeUtils.CheckVariantType(variantType);
+                    VariantType variantType = VariantTypeUtilities.GetVariantType(entry.RefAllele, entry.AltAllele);
+                    // TODO: we already do this when creating the allele index
+                    // VariantTypeUtils.CheckVariantType(variantType);
 
-                    string allele        = variantType == VariantType.deletion ? entry.RefAllele : entry.AltAllele;
+                    string allele      = variantType == VariantType.deletion ? entry.RefAllele : entry.AltAllele;
+                    int    alleleIndex = alleleToIndex[allele];
+                    
                     int    deltaPosition = entry.Position - lastPosition;
                     
                     writer.WriteOpt(deltaPosition);
                     writer.Write((byte) variantType);
-                    writer.Write(allele);
+                    writer.WriteOpt(alleleIndex);
                     writer.Write(entry.Json);
 
                     lastPosition = entry.Position;
