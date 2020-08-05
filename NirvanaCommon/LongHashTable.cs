@@ -92,7 +92,6 @@ namespace NirvanaCommon
                 entry.Next     = bucket - 1; // Value in _buckets is 1-based
                 entry.Value    = value;
                 bucket         = index + 1;
-                // location = index;
             }
         }
 
