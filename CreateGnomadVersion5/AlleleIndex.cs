@@ -13,14 +13,25 @@ namespace CreateGnomadVersion5
 {
     public static class AlleleIndex
     {
-        public static async Task<(WriteBlock AlleleBlock, Dictionary<string, int> AlleleToIndex)> GetAllelesAsync(
-            string commonTsvPath, string rareTsvPath)
+        public static async
+            Task<(WriteBlock AlleleBlock, Dictionary<string, int> AlleleToIndex, ulong[] PositionAlleles, ulong[]
+                CommonPositionAlleles)> GetAllelesAsync(string commonTsvPath, string rareTsvPath)
         {
-            var alleles = new HashSet<string>();
-            await alleles.AddFromTsvAsync(commonTsvPath).ConfigureAwait(false);
-            await alleles.AddFromTsvAsync(rareTsvPath).ConfigureAwait(false);
+            var alleles               = new HashSet<string>();
+            var commonPositionAlleles = new List<ulong>();
+            var rarePositionAlleles   = new List<ulong>();
+
+            await alleles.AddFromTsvAsync(commonTsvPath, commonPositionAlleles).ConfigureAwait(false);
+            await alleles.AddFromTsvAsync(rareTsvPath, rarePositionAlleles).ConfigureAwait(false);
 
             string[] sortedAlleles = alleles.OrderBy(s => s.Length).ThenBy(s => s).ToArray();
+
+            var positionAlleles = new HashSet<ulong>();
+            foreach (ulong pa in commonPositionAlleles) positionAlleles.Add(pa);
+            foreach (ulong pa in rarePositionAlleles) positionAlleles.Add(pa);
+
+            ulong[] sortedPositionAlleles       = positionAlleles.ToArray();
+            ulong[] sortedCommonPositionAlleles = commonPositionAlleles.ToArray();
 
             int numAlleles = sortedAlleles.Length;
             var alleleToIndex = new Dictionary<string, int>(numAlleles);
@@ -28,7 +39,7 @@ namespace CreateGnomadVersion5
 
             WriteBlock alleleBlock = CreateBlock(sortedAlleles);
             
-            return (alleleBlock, alleleToIndex);
+            return (alleleBlock, alleleToIndex, sortedPositionAlleles, sortedCommonPositionAlleles);
         }
 
         private static WriteBlock CreateBlock(string[] alleles)
@@ -59,7 +70,7 @@ namespace CreateGnomadVersion5
             return new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
         }
 
-        private static async Task AddFromTsvAsync(this HashSet<string> alleles, string tsvPath)
+        private static async Task AddFromTsvAsync(this HashSet<string> alleles, string tsvPath, List<ulong> positionAlleles)
         {
             using (var reader = new StreamReader(new GZipStream(FileUtilities.GetReadStream(tsvPath),
                 CompressionMode.Decompress)))
@@ -73,13 +84,18 @@ namespace CreateGnomadVersion5
                     if (cols.Length != 4)
                         throw new InvalidDataException($"Found an invalid number of columns: {cols.Length}");
 
+                    int    position  = int.Parse(cols[0]);
                     string refAllele = cols[1];
                     string altAllele = cols[2];
-
+                    
                     VariantType variantType = VariantTypeUtilities.GetVariantType(refAllele, altAllele);
                     VariantTypeUtilities.CheckVariantType(variantType);
 
                     string allele = variantType == VariantType.deletion ? refAllele : altAllele;
+                    
+                    ulong positionAllele = PositionAllele.Convert(position, allele, variantType);
+                    positionAlleles.Add(positionAllele);
+
                     alleles.Add(allele);
                 }
             }

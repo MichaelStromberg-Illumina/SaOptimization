@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Compression.Algorithms;
+using NirvanaCommon;
 
 namespace PreloadBaseline.Nirvana
 {

@@ -10,12 +10,9 @@ namespace Version5
 {
     public static class V5Preloader
     {
-        public static int Preload(Chromosome chromosome, List<int> positions, LongHashTable positionAlleles)
+        public static int Preload(Chromosome chromosome, ulong[] positionAlleles, LongHashTable positionAlleleSet)
         {
             List<PreloadResult> results;
-
-            var preloadBitArray = new BitArray(chromosome.Length);
-            foreach (int position in positions) preloadBitArray.Set(position);
 
             var block   = new Block(null, 0, 0);
             var context = new ZstdContext(CompressionMode.Decompress);
@@ -25,11 +22,14 @@ namespace Version5
             using (var saReader         = new AlleleFrequencyReader(saStream, block, context))
             using (var indexReader      = new IndexReader(idxStream, block, context))
             {
-                ChromosomeIndex index        = indexReader.Load(chromosome);
-                IndexEntry[]    indexEntries = index.GetIndexEntries(positions);
+                ChromosomeIndex index = indexReader.Load(chromosome);
+
+                List<ulong>  filteredPositionAlleles = index.Filter(positionAlleles);
+                IndexEntry[] indexEntries            = index.GetIndexEntries(filteredPositionAlleles);
+                // Console.WriteLine($"- index positions: {filteredPositionAlleles.Count:N0}, entries: {indexEntries.Length:N0}");
 
                 string[] alleles = saReader.GetAlleles(index.AlleleIndexOffset);
-                results = saReader.GetAnnotatedVariants(indexEntries, preloadBitArray, positions.Count, alleles, positionAlleles);
+                results = saReader.GetAnnotatedVariants(indexEntries, positionAlleleSet, filteredPositionAlleles.Count, alleles);
             }
 
             return results.Count;

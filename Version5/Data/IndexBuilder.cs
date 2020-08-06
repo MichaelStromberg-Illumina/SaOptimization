@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using NirvanaCommon;
 
 namespace Version5.Data
 {
@@ -23,10 +24,13 @@ namespace Version5.Data
             else _rareEntries.Add(indexEntry);
         }
 
-        public void FinalizeChromosome(ushort refIndex, BitArray bitArray)
+        public void FinalizeChromosome(ushort refIndex, Xor8 xorFilter, ulong[] commonPositionAlleles)
         {
+            var commonHash = new LongHashTable();
+            foreach (ulong allele in commonPositionAlleles) commonHash.Add(allele);
+            
             _chromsomeIndices[refIndex] =
-                new ChromosomeIndex(bitArray, _commonEntries.ToArray(), _rareEntries.ToArray(), _alleleIndexOffset);
+                new ChromosomeIndex(xorFilter, commonHash, _commonEntries.ToArray(), _rareEntries.ToArray(), _alleleIndexOffset);
             _commonEntries.Clear();
             _rareEntries.Clear();
         }

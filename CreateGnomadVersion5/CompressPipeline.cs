@@ -19,11 +19,11 @@ namespace CreateGnomadVersion5
     public static class CompressPipeline
     {
         public static async Task RunPipeline(string tsvPath, int maxBlockSize, ZstdDictionary dict,
-            AlleleFrequencyWriter writer, Dictionary<string, int> alleleToIndex, BitArray bitArray)
+            AlleleFrequencyWriter writer, Dictionary<string, int> alleleToIndex)
         {
             var context = new ThreadLocal<ZstdContext>(() => new ZstdContext(CompressionMode.Compress));
             
-            ChannelReader<ConvertedData> byteGen = GetByteArrays(tsvPath, maxBlockSize, alleleToIndex, bitArray);
+            ChannelReader<ConvertedData> byteGen = GetByteArrays(tsvPath, maxBlockSize, alleleToIndex);
             ChannelReader<WriteBlock> compressedBlocks =
                 CompressByteArrays2(Split(byteGen, Environment.ProcessorCount, 2), context, dict);
 
@@ -54,7 +54,7 @@ namespace CreateGnomadVersion5
         }
 
         private static ChannelReader<ConvertedData> GetByteArrays(string tsvPath, int maxBlockSize,
-            Dictionary<string, int> alleleToIndex, BitArray bitArray)
+            Dictionary<string, int> alleleToIndex)
         {
             var output = Channel.CreateBounded<ConvertedData>(10);
 
@@ -73,7 +73,6 @@ namespace CreateGnomadVersion5
                         if (string.IsNullOrEmpty(line)) break;
 
                         TsvEntry entry = TsvEntryUtils.GetTsvEntry(line);
-                        bitArray?.Set(entry.Position);
                         
                         if (entries.Count >= maxBlockSize && lastPosition != entry.Position)
                         {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NirvanaCommon;
 using Preloader;
 using Version2;
@@ -10,10 +9,10 @@ namespace PreloadVersion2
     {
         private static void Main()
         {
-            (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
+            VcfPreloadData preloadData = Preloader.Preloader.GetPositions(Preloader.Preloader.GetLines(Datasets.PedigreeTsvPath));
             
             var benchmark = new Benchmark();
-            int numPreloaded = V2Preloader.Preload(GRCh37.Chr1, positions);
+            int numPreloaded = V2Preloader.Preload(GRCh37.Chr1, preloadData.Positions);
             Console.WriteLine();
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");
             Console.WriteLine($"- elapsed time: {benchmark.GetElapsedTime()}");

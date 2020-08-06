@@ -35,5 +35,16 @@ namespace NirvanaCommon
 
             Write((byte) num);
         }
+        
+        public void WriteOpt(ulong num)
+        {
+            while (num >= 128U)
+            {
+                Write((byte) (num | 128U));
+                num >>= 7;
+            }
+
+            Write((byte) num);
+        }
     }
 }

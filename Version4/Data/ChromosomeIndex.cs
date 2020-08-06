@@ -85,7 +85,7 @@ namespace Version4.Data
                 memoryWriter.WriteOpt(byteArray.Length);
                 memoryWriter.Write(byteArray);
                 memoryWriter.WriteOpt(AlleleIndexOffset);
-                Console.WriteLine($"  - allele index file offset: {AlleleIndexOffset:N0}");
+                // Console.WriteLine($"  - allele index file offset: {AlleleIndexOffset:N0}");
                 WriteSection(memoryWriter, Common);
                 WriteSection(memoryWriter, Rare);
 
@@ -99,8 +99,8 @@ namespace Version4.Data
             int numCompressedBytes = ZstandardStatic.Compress(bytes, numBytes,
                 compressedBytes, compressedBufferSize, context);
 
-            double percent = numCompressedBytes / (double) numBytes * 100.0;
-            Console.WriteLine($"  - uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes ({percent:0.0}%)");
+            // double percent = numCompressedBytes / (double) numBytes * 100.0;
+            // Console.WriteLine($"  - uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes ({percent:0.0}%)");
             
             var block = new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
             block.Write(writer);

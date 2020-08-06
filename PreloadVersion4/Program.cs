@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NirvanaCommon;
 using Preloader;
 using Version4;
@@ -10,11 +9,11 @@ namespace PreloadVersion4
     {
         private static void Main()
         {
-            (List<int> positions, LongHashTable positionAlleles) =
-                Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
+            VcfPreloadData preloadData = Preloader.Preloader.GetPositions(Preloader.Preloader.GetLines(Datasets.PedigreeTsvPath));
 
-            var benchmark    = new Benchmark();
-            int numPreloaded = V4Preloader.Preload(GRCh37.Chr1, positions, positionAlleles);
+            var benchmark = new Benchmark();
+            int numPreloaded =
+                V4Preloader.Preload(GRCh37.Chr1, preloadData.Positions, preloadData.PositionAlleleHashTable);
 
             Console.WriteLine();
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");

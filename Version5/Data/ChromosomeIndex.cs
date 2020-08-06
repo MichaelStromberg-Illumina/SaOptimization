@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Compression.Algorithms;
 using Compression.Data;
@@ -11,52 +12,66 @@ namespace Version5.Data
 {
     public sealed class ChromosomeIndex
     {
-        public readonly BitArray     BitArray;
-        public readonly IndexEntry[] Common;
-        public readonly IndexEntry[] Rare;
-        public readonly long         AlleleIndexOffset;
+        public readonly Xor8          XorFilter;
+        public readonly LongHashTable CommonPositionAlleles;
+        public readonly IndexEntry[]  Common;
+        public readonly IndexEntry[]  Rare;
+        public readonly long          AlleleIndexOffset;
 
-        public ChromosomeIndex(BitArray bitArray, IndexEntry[] common, IndexEntry[] rare, long alleleIndexOffset)
+        public ChromosomeIndex(Xor8 xorFilter, LongHashTable commonHash, IndexEntry[] common, IndexEntry[] rare, long alleleIndexOffset)
         {
-            BitArray          = bitArray;
-            Common            = common;
-            Rare              = rare;
-            AlleleIndexOffset = alleleIndexOffset;
+            XorFilter             = xorFilter;
+            CommonPositionAlleles = commonHash;
+            Common                = common;
+            Rare                  = rare;
+            AlleleIndexOffset     = alleleIndexOffset;
         }
 
         public static ChromosomeIndex Read(ExtendedBinaryReader reader, Block block, ZstdContext context)
         {
             block.Read(reader);
             block.Decompress(context);
+            
+            ReadOnlySpan<byte> byteSpan = block.UncompressedBytes.AsSpan();
 
-            var bufferReader = new BufferBinaryReader(block.UncompressedBytes);
+            int    numFingerprints = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+            byte[] fingerprints    = SpanBufferBinaryReader.ReadBytes(ref byteSpan, numFingerprints).ToArray();
+            // Console.WriteLine($"- # of fingerprints: {numFingerprints:N0}");
 
-            int        numBytes = bufferReader.ReadOptInt32();
-            Span<byte> byteSpan = bufferReader.ReadBytes(numBytes);
+            int                 numBytes      = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+            ReadOnlySpan<byte>  hashByteSpan  = SpanBufferBinaryReader.ReadBytes(ref byteSpan, numBytes);
+            ReadOnlySpan<ulong> hashUlongSpan = MemoryMarshal.Cast<byte, ulong>(hashByteSpan);
+            // Console.WriteLine($"- # of hash table bytes: {numBytes:N0}, ulongs: {hashUlongSpan.Length:N0}");
+            
+            var commonHash = new LongHashTable();
+            foreach (ulong value in hashUlongSpan) commonHash.Add(value);
+            
+            ulong seed      = SpanBufferBinaryReader.ReadOptUInt64(ref byteSpan);
+            var   xorFilter = new Xor8(fingerprints, seed);
+            // Console.WriteLine($"- seed: {seed:N0}");
+            
+            long alleleIndexOffset = SpanBufferBinaryReader.ReadOptInt64(ref byteSpan);
+            // Console.WriteLine($"- allele index offset: {alleleIndexOffset:N0}");
+            
+            IndexEntry[] commonEntries = ReadSection(ref byteSpan);
+            IndexEntry[] rareEntries   = ReadSection(ref byteSpan);
 
-            int[] intArray = MemoryMarshal.Cast<byte, int>(byteSpan).ToArray();
-            var   bitArray = new BitArray(intArray);
-
-            long alleleIndexOffset = bufferReader.ReadOptInt64();
-
-            IndexEntry[] commonEntries = ReadSection(bufferReader);
-            IndexEntry[] rareEntries   = ReadSection(bufferReader);
-
-            return new ChromosomeIndex(bitArray, commonEntries, rareEntries, alleleIndexOffset);
+            return new ChromosomeIndex(xorFilter, commonHash, commonEntries, rareEntries, alleleIndexOffset);
         }
 
-        private static IndexEntry[] ReadSection(BufferBinaryReader reader)
+        private static IndexEntry[] ReadSection(ref ReadOnlySpan<byte> byteSpan)
         {
-            int numEntries = reader.ReadOptInt32();
+            int numEntries = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
             var entries    = new IndexEntry[numEntries];
+            // Console.WriteLine($"- # section entries: {numEntries:N0}");
 
             var  prevEnd    = 0;
             long prevOffset = 0;
 
             for (var i = 0; i < numEntries; i++)
             {
-                int  deltaPosition = reader.ReadOptInt32();
-                long deltaOffset   = reader.ReadOptInt64();
+                int  deltaPosition = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+                long deltaOffset   = SpanBufferBinaryReader.ReadOptInt64(ref byteSpan);
 
                 int  end    = prevEnd    + deltaPosition;
                 long offset = prevOffset + deltaOffset;
@@ -73,37 +88,42 @@ namespace Version5.Data
         public void Write(ExtendedBinaryWriter writer, ZstdContext context)
         {
             byte[] bytes;
-            int numBytes;
+            int    numBytes;
             
             using (var memoryStream = new MemoryStream())
             using (var memoryWriter = new ExtendedBinaryWriter(memoryStream))
             {
-                int[] intArray  = BitArray.Data;
-                var   byteArray = new byte[intArray.Length * sizeof(int)];
-                Buffer.BlockCopy(intArray, 0, byteArray, 0, byteArray.Length);
+                ulong[]             commonEntries = CommonPositionAlleles.GetData();
+                ReadOnlySpan<ulong> ulongSpan     = commonEntries.AsSpan();
+                ReadOnlySpan<byte>  byteSpan      = MemoryMarshal.Cast<ulong, byte>(ulongSpan);
+
+                memoryWriter.WriteOpt(XorFilter.Data.Length);
+                memoryWriter.Write(XorFilter.Data);
+                memoryWriter.WriteOpt(byteSpan.Length);
+                memoryWriter.Write(byteSpan);
+                memoryWriter.WriteOpt(XorFilter.Seed);
                 
-                memoryWriter.WriteOpt(byteArray.Length);
-                memoryWriter.Write(byteArray);
                 memoryWriter.WriteOpt(AlleleIndexOffset);
-                Console.WriteLine($"  - allele index file offset: {AlleleIndexOffset:N0}");
                 WriteSection(memoryWriter, Common);
                 WriteSection(memoryWriter, Rare);
 
                 bytes    = memoryStream.ToArray();
                 numBytes = (int) memoryStream.Position;
             }
+            
+            WriteBlock block = GetWriteBlock(bytes, numBytes, context);
+            block.Write(writer);
+        }
 
+        private static WriteBlock GetWriteBlock(byte[] bytes, int numBytes, ZstdContext context)
+        {
             int compressedBufferSize = ZstandardStatic.GetCompressedBufferBounds(numBytes);
             var compressedBytes      = new byte[compressedBufferSize];
-            
+
             int numCompressedBytes = ZstandardStatic.Compress(bytes, numBytes,
                 compressedBytes, compressedBufferSize, context);
 
-            double percent = numCompressedBytes / (double) numBytes * 100.0;
-            Console.WriteLine($"  - uncompressed: {numBytes:N0} bytes, compressed: {numCompressedBytes:N0} bytes ({percent:0.0}%)");
-            
-            var block = new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
-            block.Write(writer);
+            return new WriteBlock(compressedBytes, numCompressedBytes, numBytes, 0, 0);
         }
 
         private static void WriteSection(ExtendedBinaryWriter writer, IndexEntry[] entries)
@@ -115,8 +135,6 @@ namespace Version5.Data
 
             foreach (IndexEntry entry in entries)
             {
-                //Console.WriteLine($"- file offset: {entry.Offset:N0}, end: {entry.End:N0}");
-
                 int  deltaPostion = entry.End    - prevEnd;
                 long deltaOffset  = entry.Offset - prevOffset;
 
@@ -128,32 +146,33 @@ namespace Version5.Data
             }
         }
 
-        public IndexEntry[] GetIndexEntries(List<int> positions)
+        public IndexEntry[] GetIndexEntries(List<ulong> positionAlleles)
         {
-            var commonEntries = new List<IndexEntry>();
-            var rareEntries   = new List<IndexEntry>();
+            var entries = new List<IndexEntry>();
 
-            int lastCommonBlockIndex = -1;
-            int lastRareBlockIndex   = -1;
+            var commonIndexes = new HashSet<int>();
+            var rareIndexes   = new HashSet<int>();
 
-            foreach (int position in positions)
+            foreach (ulong positionAllele in positionAlleles)
             {
-                GetIndexEntry(position, Common, commonEntries, ref lastCommonBlockIndex);
-                if (BitArray.Get(position)) GetIndexEntry(position, Rare, rareEntries, ref lastRareBlockIndex);
+                int position = PositionAllele.GetPosition(positionAllele);
+
+                if (CommonPositionAlleles.Contains(positionAllele)) GetIndexEntry(position, Common, commonIndexes);
+                else GetIndexEntry(position,                                                Rare,   rareIndexes);
             }
 
-            commonEntries.AddRange(rareEntries);
-            return commonEntries.ToArray();
+            foreach (int index in commonIndexes.OrderBy(x => x)) entries.Add(Common[index]);
+            foreach (int index in rareIndexes.OrderBy(x => x)) entries.Add(Rare[index]);
+
+            // Console.WriteLine($"- GetIndexEntries: common index entries: {commonIndexes.Count:N0}, rare index entries: {rareIndexes.Count:N0}");
+            
+            return entries.ToArray();
         }
 
-        private static void GetIndexEntry(int position, IndexEntry[] index, List<IndexEntry> foundBlocks,
-            ref int lastBlockIndex)
+        private static void GetIndexEntry(int position, IndexEntry[] index, HashSet<int> hashSet)
         {
             int blockIndex = BinarySearch(index, position);
-            if (blockIndex < 0 || blockIndex == lastBlockIndex) return;
-
-            foundBlocks.Add(index[blockIndex]);
-            lastBlockIndex = blockIndex;
+            if (blockIndex >= 0) hashSet.Add(blockIndex);
         }
 
         private static int BinarySearch(IndexEntry[] entries, int position)
@@ -174,6 +193,17 @@ namespace Version5.Data
             }
 
             return ~begin;
+        }
+
+        public List<ulong> Filter(ulong[] positionAlleles)
+        {
+            var filteredPositions = new List<ulong>(positionAlleles.Length);
+
+            foreach (ulong pa in positionAlleles)
+                if (XorFilter.Contains(pa))
+                    filteredPositions.Add(pa);
+
+            return filteredPositions;
         }
     }
 }

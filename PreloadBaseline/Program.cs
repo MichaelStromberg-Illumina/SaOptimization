@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using NirvanaCommon;
 using Preloader;
 
@@ -9,9 +8,8 @@ namespace PreloadBaseline
     {
         private static void Main()
         {
-            (List<int> positions, _) = Preloader.Preloader.GetPositions(Datasets.PedigreeTsvPath);
-
-            int numPreloaded = Baseline.Preload(GRCh37.Chr1, positions);
+            VcfPreloadData preloadData = Preloader.Preloader.GetPositions(Preloader.Preloader.GetLines(Datasets.PedigreeTsvPath));
+            int numPreloaded = Baseline.Preload(GRCh37.Chr1, preloadData.Positions);
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");
         }
     }

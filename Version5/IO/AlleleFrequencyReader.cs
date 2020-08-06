@@ -35,16 +35,19 @@ namespace Version5.IO
             if (header.Identifier != SaConstants.AlleleFrequencyIdentifier)
                 throw new InvalidDataException(
                     $"Invalid index file. Identifier did not match: '{SaConstants.AlleleFrequencyIdentifier}");
-            
+
             if (header.FileFormatVersion != AlleleFrequencyWriter.FileFormatVersion)
                 throw new InvalidDataException(
                     $"Unsupported file format version (supported: {AlleleFrequencyWriter.FileFormatVersion} vs file: {header.FileFormatVersion}");
         }
 
-        public List<PreloadResult> GetAnnotatedVariants(IndexEntry[] indexEntries, BitArray preloadBitArray,
-            int numPositions, string[] alleles, LongHashTable positionAlleles)
+        public List<PreloadResult> GetAnnotatedVariants(IndexEntry[] indexEntries, LongHashTable positionAlleleSet,
+            int numPositions, string[] alleles)
         {
             var results = new List<PreloadResult>(numPositions);
+
+            // int numCommonEntries = 0;
+            // int numRareEntries   = 0;
 
             foreach (IndexEntry indexEntry in indexEntries)
             {
@@ -58,52 +61,49 @@ namespace Version5.IO
                 int numEntries   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
                 var lastPosition = 0;
 
+                // bool isCommon = numEntries > 140;
+                
+                // Console.WriteLine($"- IndexEntry: common: {isCommon}, offset: {indexEntry.Offset:N0}, # entries: {numEntries:N0}");
+                
                 for (var entryIndex = 0; entryIndex < numEntries; entryIndex++)
                 {
-                    int position = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan) + lastPosition;
+                    int    position    = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan) + lastPosition;
+                    var    variantType = (VariantType) SpanBufferBinaryReader.ReadByte(ref byteSpan);
+                    int    alleleIndex = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+                    string allele      = alleles[alleleIndex];
 
-                    if (preloadBitArray.Get(position))
+                    ulong positionAllele = PositionAllele.Convert(position, allele, variantType);
+                    if (positionAlleleSet.Contains(positionAllele))
                     {
-                        var    variantType = (VariantType) SpanBufferBinaryReader.ReadByte(ref byteSpan);
-                        int    alleleIndex = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
-                        string allele = alleles[alleleIndex];
-
-                        long positionAllele = PositionAllele.Convert(position, allele, variantType);
-                        if (positionAlleles.Contains(positionAllele))
-                        {
-                            string json = SpanBufferBinaryReader.ReadString(ref byteSpan);
-                            results.Add(new PreloadResult(position, null, allele, json));
-                        }
-                        else
-                        {
-                            SpanBufferBinaryReader.SkipString(ref byteSpan);
-                        }
+                        // if (isCommon) numCommonEntries++;
+                        // else numRareEntries++;
+                        string json = SpanBufferBinaryReader.ReadString(ref byteSpan);
+                        results.Add(new PreloadResult(position, null, allele, json));
                     }
                     else
                     {
-                        SpanBufferBinaryReader.SkipByte(ref byteSpan);
-                        SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
                         SpanBufferBinaryReader.SkipString(ref byteSpan);
                     }
 
                     lastPosition = position;
                 }
             }
+            
+            // Console.WriteLine($"- GetAnnotatedVariants: # common entries: {numCommonEntries:N0}, # rare entries: {numRareEntries:N0}");
 
             return results;
         }
-        
+
         public string[] GetAlleles(in long fileOffset)
         {
             _stream.Position = fileOffset;
             _block.Read(_reader);
             _block.Decompress(_context);
-            
-            ReadOnlySpan<byte> byteSpan = _block.UncompressedBytes.AsSpan();
 
-            int numAlleles   = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+            ReadOnlySpan<byte> byteSpan   = _block.UncompressedBytes.AsSpan();
+            int                numAlleles = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
+
             var alleles = new string[numAlleles];
-
             for (var index = 0; index < numAlleles; index++)
             {
                 alleles[index] = SpanBufferBinaryReader.ReadString(ref byteSpan);

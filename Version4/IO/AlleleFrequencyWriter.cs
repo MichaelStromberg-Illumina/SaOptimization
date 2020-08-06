@@ -61,7 +61,7 @@ namespace Version4.IO
 
         public void WriteAlleles(WriteBlock block)
         {
-            Console.WriteLine($"  - allele index file offset: {_stream.Position:N0}");
+            // Console.WriteLine($"  - allele index file offset: {_stream.Position:N0}");
             _indexBuilder.SetAlleleIndexOffset(_stream.Position);
             block.Write(_writer);
         }

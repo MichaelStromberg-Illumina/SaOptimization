@@ -7,7 +7,7 @@ namespace NirvanaCommon
     public sealed class Xor16
     {
         private readonly ushort[] _fingerprints;
-        private readonly ulong  _seed;
+        public readonly ulong  Seed;
         private readonly int _blockLength;
         private readonly int _blockLength2;
 
@@ -22,12 +22,14 @@ namespace NirvanaCommon
         public Xor16(ushort[] fingerprints, ulong seed)
         {
             _fingerprints = fingerprints;
-            _seed         = seed;
+            Seed         = seed;
 
             int capacity = fingerprints.Length;
             _blockLength  = capacity / NumHashes;
             _blockLength2 = 2        * _blockLength;
         }
+        
+        public ushort[] Data => _fingerprints;
 
         private static int FloorMultipleThree(int n) => n / 3 * 3;
         private static int GetCapacity(int numIntegers) => FloorMultipleThree((int) (Factor * numIntegers) + 32);
@@ -35,7 +37,7 @@ namespace NirvanaCommon
         // Algorithm 1: Membership test
         public bool Contains(ulong key)
         {
-            ulong hash = MurmurFinalizer(key + _seed);
+            ulong hash = MurmurFinalizer(key + Seed);
             var   f    = (ushort) (hash ^ (hash >> 32));
 
             ulong r0 = hash;
@@ -93,7 +95,7 @@ namespace NirvanaCommon
 
             while (true)
             {
-                seed = Seed.SplitMix64(seed);
+                seed = NirvanaCommon.Seed.SplitMix64(seed);
 
                 bool success;
                 (success, sigma) = Map(keys, seed, capacity, blockLength);

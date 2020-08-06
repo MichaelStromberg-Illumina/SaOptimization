@@ -1,11 +1,13 @@
-﻿namespace PreloadBaseline.Nirvana
+﻿using NirvanaCommon;
+
+namespace PreloadBaseline.Nirvana
 {
     public sealed class DataSourceVersion
     {
-        public string Name { get; }
-        public string Description { get; }
-        public string Version { get; }
-        public long ReleaseDateTicks { get; }
+        public string Name             { get; }
+        public string Description      { get; }
+        public string Version          { get; }
+        public long   ReleaseDateTicks { get; }
 
         public DataSourceVersion(string name, string version, long releaseDateTicks, string description = null)
         {
@@ -23,8 +25,7 @@
             var description      = reader.ReadAsciiString();
             return new DataSourceVersion(name, version, releaseDateTicks, description);
         }
-
-
+        
         public override string ToString() => "dataSource=" + Name + ",version:" + Version + ",release date:";
     }
 }

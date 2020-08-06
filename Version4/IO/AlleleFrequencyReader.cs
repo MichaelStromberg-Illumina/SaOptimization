@@ -68,7 +68,7 @@ namespace Version4.IO
                         int    alleleIndex = SpanBufferBinaryReader.ReadOptInt32(ref byteSpan);
                         string allele = alleles[alleleIndex];
 
-                        long positionAllele = PositionAllele.Convert(position, allele, variantType);
+                        ulong positionAllele = PositionAllele.Convert(position, allele, variantType);
                         if (positionAlleles.Contains(positionAllele))
                         {
                             string json = SpanBufferBinaryReader.ReadString(ref byteSpan);

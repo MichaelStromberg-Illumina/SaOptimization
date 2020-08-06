@@ -15,5 +15,6 @@
       <ProjectReference Include="..\Version2\Version2.csproj" />
       <ProjectReference Include="..\Version3\Version3.csproj" />
       <ProjectReference Include="..\Version4\Version4.csproj" />
+      <ProjectReference Include="..\Version5\Version5.csproj" />
     </ItemGroup>
 </Project>

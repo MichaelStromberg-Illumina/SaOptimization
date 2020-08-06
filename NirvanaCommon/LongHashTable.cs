@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace NirvanaCommon
@@ -30,7 +32,7 @@ namespace NirvanaCommon
             _fastModMultiplier = PrimeUtilities.GetFastModMultiplier((uint) size);
         }
 
-        public unsafe void Add(long value)
+        public unsafe void Add(ulong value)
         {
             if (_buckets == null) Initialize(0);
 
@@ -128,7 +130,7 @@ namespace NirvanaCommon
             return ref buckets[PrimeUtilities.FastMod((uint)hashCode, (uint) buckets.Length, _fastModMultiplier)];
         }
 
-        public bool Contains(long value)
+        public bool Contains(ulong value)
         {
             int[]? buckets = _buckets;
             if (buckets == null) return false;
@@ -154,13 +156,26 @@ namespace NirvanaCommon
             return false;
         }
 
+        public ulong[] GetData()
+        {
+            if (_entries == null) return new ulong[0];
+            var values = new List<ulong>();
+
+            foreach (Entry entry in _entries)
+            {
+                if (entry.HashCode != 0) values.Add(entry.Value);
+            }
+            
+            return values.OrderBy(x => x).ToArray();
+        }
+
         public int Count => _count - _freeCount;
 
         private struct Entry
         {
             public int HashCode;
             public int  Next;
-            public long Value;
+            public ulong Value;
         }
     }
 }

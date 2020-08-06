@@ -30,10 +30,10 @@ namespace Version5.IO
             _indexBuilder = new IndexBuilder(numRefSeqs);
         }
 
-        public void EndChromosome(Chromosome chromosome, BitArray bitArray)
+        public void EndChromosome(Chromosome chromosome, Xor8 xorFilter, ulong[] commonPositionAlleles)
         {
             ushort refIndex = chromosome.Index;
-            _indexBuilder.FinalizeChromosome(refIndex, bitArray);
+            _indexBuilder.FinalizeChromosome(refIndex, xorFilter, commonPositionAlleles);
         }
 
         private void InitializeSection(bool addingCommonBlocks)
@@ -61,7 +61,7 @@ namespace Version5.IO
 
         public void WriteAlleles(WriteBlock block)
         {
-            Console.WriteLine($"  - allele index file offset: {_stream.Position:N0}");
+            // Console.WriteLine($"  - allele index file offset: {_stream.Position:N0}");
             _indexBuilder.SetAlleleIndexOffset(_stream.Position);
             block.Write(_writer);
         }

@@ -1,11 +1,12 @@
 ﻿using System;
+using NirvanaCommon;
 
 namespace PreloadBaseline.Nirvana
 {
     public sealed class NsaIndexBlock
     {
-        public readonly int Start;
-        public readonly int End;
+        public readonly int  Start;
+        public readonly int  End;
         public readonly long FilePosition;
 
         [Obsolete("Use a factory method instead of an extra constructor.")]

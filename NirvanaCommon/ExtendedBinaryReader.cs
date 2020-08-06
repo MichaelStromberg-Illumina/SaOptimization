@@ -13,6 +13,23 @@ namespace NirvanaCommon
         {
             _stream = stream;
         }
+        
+        public ushort ReadOptUInt16()
+        {
+            ushort count = 0;
+            var    shift = 0;
+
+            while (shift != 21)
+            {
+                byte b = ReadByte();
+                count |= (ushort) ((b & sbyte.MaxValue) << shift);
+                shift += 7;
+
+                if ((b & 128) == 0) return count;
+            }
+
+            throw new FormatException("Unable to read the 7-bit encoded unsigned short");
+        }
 
         public int ReadOptInt32()
         {
@@ -49,5 +66,14 @@ namespace NirvanaCommon
         }
 
         public void ReadOptBytes(byte[] buffer, int numBytes) => _stream.Read(buffer, 0, numBytes);
+        
+        public string ReadAsciiString()
+        {
+            int numBytes = ReadOptInt32();
+
+            // grab the ASCII characters
+            // ReSharper disable once AssignNullToNotNullAttribute
+            return numBytes == 0 ? null : Encoding.ASCII.GetString(ReadBytes(numBytes));
+        }
     }
 }
