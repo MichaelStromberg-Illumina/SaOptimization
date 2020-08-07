@@ -14,7 +14,7 @@ namespace Preloader
             var positionAlleles         = new List<ulong>();
             var positionAlleleHashTable = new LongHashTable();
 
-            foreach (var line in lines)
+            foreach (string line in lines)
             {
                 string[] cols      = line.Split('\t');
                 int      position  = int.Parse(cols[0]);
@@ -36,10 +36,10 @@ namespace Preloader
             {
                 bool foundError = false;
 
-                if (positionAlleleHashTable.Count != Datasets.NumPedigreeAllelicVariants)
+                if (positionAlleleHashTable.Count != Datasets.NumPedigreeVariants)
                 {
                     Console.WriteLine(
-                        $"ERROR: Unexpected number of position-alleles. Expected: {Datasets.NumPedigreeAllelicVariants:N0} vs Observed: {positionAlleleHashTable.Count:N0}");
+                        $"ERROR: Unexpected number of position-alleles. Expected: {Datasets.NumPedigreeVariants:N0} vs Observed: {positionAlleleHashTable.Count:N0}");
                     foundError = true;
                 }
 
@@ -53,7 +53,8 @@ namespace Preloader
                 if (foundError) Environment.Exit(1);
             }
 
-            return new VcfPreloadData(positions.ToList(), positionAlleleHashTable, positionAlleles.ToArray());
+            return new VcfPreloadData(positions.OrderBy(x => x).ToList(), positionAlleleHashTable,
+                positionAlleles.ToArray());
         }
 
         public static List<string> GetLines(string tsvPath)
