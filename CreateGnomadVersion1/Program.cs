@@ -6,6 +6,7 @@ using NirvanaCommon;
 using VariantGrouping;
 using Version1.Data;
 using Version1.IO;
+using Version1.Utilities;
 
 namespace CreateGnomadVersion1
 {
@@ -19,14 +20,14 @@ namespace CreateGnomadVersion1
                 Environment.Exit(1);
             }
 
-            string saDir       = args[0];
+            string saDir           = args[0];
             string commonThreshold = args[1];
 
             string commonTsvPath = Path.Combine(saDir, $"gnomAD_chr1_common_{commonThreshold}.tsv.gz");
             string rareTsvPath   = Path.Combine(saDir, $"gnomAD_chr1_rare_{commonThreshold}.tsv.gz");
-            string saPath        = Path.Combine(saDir, $"gnomad_chr1_v1_{commonThreshold}.nsa");
-            string indexPath     = saPath + ".idx";
             string dictPath      = Path.Combine(saDir, "gnomad.dict");
+            
+            (string saPath, string indexPath) = SaPath.GetPaths(saDir, commonThreshold);
             
             byte[] dictionaryBytes = File.ReadAllBytes(dictPath);
             var    dict            = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);

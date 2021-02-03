@@ -10,11 +10,8 @@ namespace Version1
 {
     public static class V1Preloader
     {
-        public static int Preload(Chromosome chromosome, List<int> positions, string commonThreshold)
+        public static int Preload(Chromosome chromosome, string saPath, string indexPath, List<int> positions)
         {
-            string saPath    = $"E:\\Data\\Nirvana\\NewSA\\gnomad_chr1_v1_{commonThreshold}.nsa";
-            string indexPath = saPath + ".idx";
-            
             List<PreloadResult> results;
 
             var preloadBitArray = new BitArray(chromosome.Length);

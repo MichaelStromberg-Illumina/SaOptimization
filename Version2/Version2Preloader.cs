@@ -10,7 +10,7 @@ namespace Version2
 {
     public static class V2Preloader
     {
-        public static int Preload(Chromosome chromosome, List<int> positions)
+        public static int Preload(Chromosome chromosome, string saPath, string indexPath, List<int> positions)
         {
             List<PreloadResult> results;
 
@@ -20,8 +20,8 @@ namespace Version2
             var block   = new Block(null, 0, 0);
             var context = new ZstdContext(CompressionMode.Decompress);
 
-            using (FileStream saStream  = FileUtilities.GetReadStream(SaConstants.SaPath))
-            using (FileStream idxStream = FileUtilities.GetReadStream(SaConstants.IndexPath))
+            using (FileStream saStream  = FileUtilities.GetReadStream(saPath))
+            using (FileStream idxStream = FileUtilities.GetReadStream(indexPath))
             using (var saReader         = new AlleleFrequencyReader(saStream, block, context))
             using (var indexReader      = new IndexReader(idxStream, block, context, saReader.Dictionary))
             {

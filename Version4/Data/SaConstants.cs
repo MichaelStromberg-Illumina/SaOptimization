@@ -7,8 +7,5 @@
 
         public const string IndexIdentifier           = "NirvanaIndex";
         public const string AlleleFrequencyIdentifier = "NirvanaAF";
-        
-        public const string SaPath    = @"E:\Data\Nirvana\NewSA\gnomad_chr1_v4.nsa";
-        public const string IndexPath = SaPath + ".idx";
     }
 }

@@ -75,5 +75,11 @@ namespace NirvanaCommon
             // ReSharper disable once AssignNullToNotNullAttribute
             return numBytes == 0 ? null : Encoding.ASCII.GetString(ReadBytes(numBytes));
         }
+
+        public string ReadOptAscii()
+        {
+            int numBytes = ReadOptInt32();
+            return numBytes == 0 ? null : Encoding.ASCII.GetString(ReadBytes(numBytes));
+        }
     }
 }

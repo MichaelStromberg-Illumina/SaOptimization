@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -10,25 +9,22 @@ namespace Version5.IO
         private const int MostSignificantBit = 128;
         private const int VlqBitShift        = 7;
 
-        private static readonly Encoding Encoding = Encoding.UTF8;
-        private static readonly Decoder  Decoder  = Encoding.UTF8.GetDecoder();
-        
         public static int ReadOptInt32(ref ReadOnlySpan<byte> byteSpan)
         {
-            var count = 0;
+            var value = 0;
             var shift = 0;
             var index = 0;
 
             while (shift != 35)
             {
                 byte b = byteSpan[index++];
-                count |= (b & sbyte.MaxValue) << shift;
+                value |= (b & sbyte.MaxValue) << shift;
                 shift += VlqBitShift;
 
                 if ((b & MostSignificantBit) == 0)
                 {
                     byteSpan = byteSpan.Slice(index);
-                    return count;
+                    return value;
                 }
             }
 
@@ -37,20 +33,20 @@ namespace Version5.IO
 
         public static long ReadOptInt64(ref ReadOnlySpan<byte> byteSpan)
         {
-            long count = 0;
+            long value = 0;
             var  shift = 0;
             var  index = 0;
 
             while (shift != 70)
             {
                 byte b = byteSpan[index++];
-                count |= (long) (b & sbyte.MaxValue) << shift;
+                value |= (long) (b & sbyte.MaxValue) << shift;
                 shift += VlqBitShift;
 
                 if ((b & MostSignificantBit) == 0)
                 {
                     byteSpan = byteSpan.Slice(index);
-                    return count;
+                    return value;
                 }
             }
 
@@ -59,41 +55,46 @@ namespace Version5.IO
 
         public static ulong ReadOptUInt64(ref ReadOnlySpan<byte> byteSpan)
         {
-            ulong count = 0;
+            ulong value = 0;
             var   shift = 0;
             var   index = 0;
 
             while (shift != 70)
             {
                 byte b = byteSpan[index++];
-                count |= (ulong) (b & sbyte.MaxValue) << shift;
+                value |= (ulong) (b & sbyte.MaxValue) << shift;
                 shift += VlqBitShift;
 
                 if ((b & MostSignificantBit) == 0)
                 {
                     byteSpan = byteSpan.Slice(index);
-                    return count;
+                    return value;
                 }
             }
 
             throw new FormatException("Unable to read the 7-bit encoded ulong");
         }
-        
-        public static string ReadString(ref ReadOnlySpan<byte> byteSpan)
+
+        public static string ReadUtf8String(ref ReadOnlySpan<byte> byteSpan)
         {
             int numBytes = ReadOptInt32(ref byteSpan);
             if (numBytes == 0) return string.Empty;
 
-            int        maxBufferSize = Encoding.GetMaxCharCount(numBytes);
-            char[]     charBuffer    = ArrayPool<char>.Shared.Rent(maxBufferSize);
-            Span<char> charSpan      = charBuffer.AsSpan();
-
-            int numChars = Decoder.GetChars(byteSpan.Slice(0, numBytes), charSpan, true);
-            charSpan = charSpan.Slice(0, numChars);
+            string value = Encoding.UTF8.GetString(byteSpan.Slice(0, numBytes));
             byteSpan = byteSpan.Slice(numBytes);
-            ArrayPool<char>.Shared.Return(charBuffer);
             
-            return new string(charSpan);
+            return value;
+        }
+        
+        public static string ReadAsciiString(ref ReadOnlySpan<byte> byteSpan)
+        {
+            int numBytes = ReadOptInt32(ref byteSpan);
+            if (numBytes == 0) return string.Empty;
+
+            string value = Encoding.ASCII.GetString(byteSpan.Slice(0, numBytes));
+            byteSpan = byteSpan.Slice(numBytes);
+            
+            return value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -77,7 +77,7 @@ namespace Version5.IO
                     {
                         // if (isCommon) numCommonEntries++;
                         // else numRareEntries++;
-                        string json = SpanBufferBinaryReader.ReadString(ref byteSpan);
+                        string json = SpanBufferBinaryReader.ReadAsciiString(ref byteSpan);
                         results.Add(new PreloadResult(position, null, allele, json));
                     }
                     else
@@ -106,7 +106,7 @@ namespace Version5.IO
             var alleles = new string[numAlleles];
             for (var index = 0; index < numAlleles; index++)
             {
-                alleles[index] = SpanBufferBinaryReader.ReadString(ref byteSpan);
+                alleles[index] = SpanBufferBinaryReader.ReadAsciiString(ref byteSpan);
             }
 
             return alleles;

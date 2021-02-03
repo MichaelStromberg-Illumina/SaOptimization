@@ -43,21 +43,21 @@ namespace Benchmarks
             return numSet;
         }
         
-        [Benchmark]
-        public int BitArray1()
-        {
-            int numSet = 0;
-            var bitArray = new BitArray1(MaxPosition);
-            
-            foreach (int position in _positions)
-            {
-                bitArray.Set(position);
-                if(bitArray.Get(position)) numSet++;
-            }
-            
-            if (numSet != NumPositions) throw new InvalidDataException();
-            return numSet;
-        }
+        // [Benchmark]
+        // public int BitArray1()
+        // {
+        //     int numSet = 0;
+        //     var bitArray = new BitArray1(MaxPosition);
+        //     
+        //     foreach (int position in _positions)
+        //     {
+        //         bitArray.Set(position);
+        //         if(bitArray.Get(position)) numSet++;
+        //     }
+        //     
+        //     if (numSet != NumPositions) throw new InvalidDataException();
+        //     return numSet;
+        // }
         
         [Benchmark]
         public int BitArray_Inline()

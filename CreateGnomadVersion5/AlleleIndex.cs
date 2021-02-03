@@ -72,6 +72,8 @@ namespace CreateGnomadVersion5
 
         private static async Task AddFromTsvAsync(this HashSet<string> alleles, string tsvPath, List<ulong> positionAlleles)
         {
+            // string label = tsvPath.Contains("common") ? "common" : "rare";
+            
             using (var reader = new StreamReader(new GZipStream(FileUtilities.GetReadStream(tsvPath),
                 CompressionMode.Decompress)))
             {
@@ -94,6 +96,10 @@ namespace CreateGnomadVersion5
                     string allele = variantType == VariantType.deletion ? refAllele : altAllele;
                     
                     ulong positionAllele = PositionAllele.Convert(position, allele, variantType);
+                    
+                    // if (positionAllele == 1002626412615658) Console.WriteLine($"AlleleIndex.AddFromTsvAsync ({label}): 14590-G-A (rare)");
+                    // if (positionAllele == 1008605007091690) Console.WriteLine($"AlleleIndex.AddFromTsvAsync ({label}): 14677-G-A (rare)");
+                    
                     positionAlleles.Add(positionAllele);
 
                     alleles.Add(allele);

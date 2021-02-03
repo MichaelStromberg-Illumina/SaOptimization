@@ -6,6 +6,7 @@ using NirvanaCommon;
 using VariantGrouping;
 using Version3.Data;
 using Version3.IO;
+using Version3.Utilities;
 
 namespace CreateGnomadVersion3
 {
@@ -15,11 +16,13 @@ namespace CreateGnomadVersion3
         {
             byte[] dictionaryBytes = File.ReadAllBytes(GnomAD.DictionaryPath);
             var    dict            = new ZstdDictionary(CompressionMode.Compress, dictionaryBytes, 17);
+            
+            (string saPath, string indexPath) = SaPath.GetPaths(SupplementaryAnnotation.Directory);
 
             ChromosomeIndex[] chromosomeIndices;
             var               benchmark = new Benchmark();
 
-            using (FileStream saStream = FileUtilities.GetWriteStream(SaConstants.SaPath))
+            using (FileStream saStream = FileUtilities.GetWriteStream(saPath))
             using (var writer = new AlleleFrequencyWriter(saStream, GRCh37.Assembly, GnomAD.DataSourceVersion,
                 GnomAD.JsonKey, dictionaryBytes, GRCh37.NumRefSeqs))
             {
@@ -44,7 +47,7 @@ namespace CreateGnomadVersion3
             var indexBenchmark = new Benchmark();
             Console.WriteLine("- creating index:");
 
-            using (FileStream idxStream = FileUtilities.GetWriteStream(SaConstants.IndexPath))
+            using (FileStream idxStream = FileUtilities.GetWriteStream(indexPath))
             using (var writer = new IndexWriter(idxStream, GRCh37.NumRefSeqs))
             {
                 var context = new ZstdContext(CompressionMode.Compress);

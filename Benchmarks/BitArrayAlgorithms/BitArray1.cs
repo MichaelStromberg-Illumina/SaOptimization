@@ -22,18 +22,18 @@ namespace Benchmarks.BitArrayAlgorithms
         {
             if (position > _maxPosition) throw new ArgumentOutOfRangeException(nameof(position));
 
-            Console.WriteLine($"position: {position}");
+            // Console.WriteLine($"position: {position}");
             
             int     index   = position - 1;
-            Console.WriteLine($"index: {index}");
+            // Console.WriteLine($"index: {index}");
             
             byte     bitMask = (byte)(1 << index);
-            var binaryBitMask = Convert.ToString((uint)bitMask,  2);
-            var hexBitMask = Convert.ToString((uint)bitMask, 16);
-            Console.WriteLine($"bitmask: {(uint)bitMask} ({binaryBitMask} - {hexBitMask})");
+            // var binaryBitMask = Convert.ToString((uint)bitMask,  2);
+            // var hexBitMask = Convert.ToString((uint)bitMask, 16);
+            // Console.WriteLine($"bitmask: {(uint)bitMask} ({binaryBitMask} - {hexBitMask})");
             
             ref int segment = ref _data[index >> 5];
-            Console.WriteLine($"int index: {index >> 5}\n");
+            // Console.WriteLine($"int index: {index >> 5}\n");
             
             segment |= bitMask;
         }

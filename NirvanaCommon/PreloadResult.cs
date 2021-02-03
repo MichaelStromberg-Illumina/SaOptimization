@@ -15,6 +15,6 @@
             Json      = json;
         }
 
-        public override string ToString() => $"{Position}\t{Json}";
+        public override string ToString() => $"{Position}\t{AltAllele}";
     }
 }

@@ -59,7 +59,7 @@ namespace Version5.IO
             long fileOffset = _chromosomeOffsets[refIndex];
             _stream.Position = fileOffset;
 
-            ChromosomeIndex index = ChromosomeIndex.Read(_reader, _block, _context);
+            ChromosomeIndex index = ChromosomeIndexReader.Read(_reader, _block, _context);
             _currentIndex    = index;
             _currentRefIndex = refIndex;
 

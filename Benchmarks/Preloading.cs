@@ -4,73 +4,118 @@ using BenchmarkDotNet.Order;
 using Benchmarks.Data;
 using NirvanaCommon;
 using PreloadBaseline;
-using Version1;
-using Version2;
-using Version3;
+using Preloader;
 using Version4;
 using Version5;
+using Version6;
 
 namespace Benchmarks
 {
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    [RankColumn]
+    [RankColumn, MinColumn, MaxColumn]
     [MemoryDiagnoser]
+    [MaxRelativeError(0.005)]
     public class Preloading
     {
-        private const int ExpectedPreloadedVariants     = 304_636;
-        private const int ExpectedPreloadedVariantsOrig = 304_403;
-        private const int ExpectedPreloadedAlleles      = 180_445;
-
         private readonly VcfPreloadData _preloadData = PreloadedData.PedigreeData;
+        private readonly string         _saDir       = SupplementaryAnnotation.Directory;
 
         [Benchmark(Baseline = true)]
         public int Current()
         {
-            int numPreloadedVariants = Baseline.Preload(GRCh37.Chr1, _preloadData.Positions);
-            if (numPreloadedVariants != ExpectedPreloadedVariantsOrig) throw new InvalidDataException();
+            (string saPath, string indexPath) = SaPath.GetPaths(SupplementaryAnnotation.DevelopDirectory);
+            FileCacheBlaster.Blast(saPath, indexPath);
+            
+            int numPreloadedVariants = Baseline.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.Positions);
+            if (numPreloadedVariants != Datasets.NumPedigreePreloadedPositionalVariants)
+                throw new InvalidDataException();
             return numPreloadedVariants;
         }
-
+        
+        // [Benchmark]
+        // public int RareBitVector_5pct()
+        // {
+        //     (string saPath, string indexPath) = Version1.Utilities.SaPath.GetPaths(_saDir, "0.05");
+        //     FileCacheBlaster.Blast(saPath, indexPath);
+        //     
+        //     int numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.Positions);
+        //     if (numPreloadedVariants != Datasets.NumPedigreePreloadedPositionalVariants)
+        //         throw new InvalidDataException();
+        //     return numPreloadedVariants;
+        // }
+        //
+        // [Benchmark]
+        // public int TwoBitVectors_5pct()
+        // {
+        //     (string saPath, string indexPath) = Version2.Utilities.SaPath.GetPaths(_saDir);
+        //     FileCacheBlaster.Blast(saPath, indexPath);
+        //     
+        //     int numPreloadedVariants = V2Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.Positions);
+        //     if (numPreloadedVariants != Datasets.NumPedigreePreloadedPositionalVariants)
+        //         throw new InvalidDataException();
+        //     return numPreloadedVariants;
+        // }
+        //
+        // [Benchmark]
+        // public int NoBitVector_5pct()
+        // {
+        //     (string saPath, string indexPath) = Version3.Utilities.SaPath.GetPaths(_saDir);
+        //     FileCacheBlaster.Blast(saPath, indexPath);
+        //     
+        //     int numPreloadedVariants = V3Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.Positions);
+        //     if (numPreloadedVariants != Datasets.NumPedigreePreloadedPositionalVariants)
+        //         throw new InvalidDataException();
+        //     return numPreloadedVariants;
+        // }
+        
         [Benchmark]
-        public int RareBitVector_5pct()
+        public int RareBitVector_Span_AI_5pct()
         {
-            const string threshold            = "0.05";
-            int          numPreloadedVariants = V1Preloader.Preload(GRCh37.Chr1, _preloadData.Positions, threshold);
-            if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
-            return numPreloadedVariants;
-        }
-
-        [Benchmark]
-        public int TwoBitVectors_5pct()
-        {
-            int numPreloadedVariants = V2Preloader.Preload(GRCh37.Chr1, _preloadData.Positions);
-            if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
-            return numPreloadedVariants;
-        }
-
-        [Benchmark]
-        public int NoBitVector_5pct()
-        {
-            int numPreloadedVariants = V3Preloader.Preload(GRCh37.Chr1, _preloadData.Positions);
-            if (numPreloadedVariants != ExpectedPreloadedVariants) throw new InvalidDataException();
-            return numPreloadedVariants;
-        }
-
-        [Benchmark]
-        public int RareBitVector_5pct_Opt()
-        {
+            (string saPath, string indexPath) = Version4.Utilities.SaPath.GetPaths(_saDir);
+            FileCacheBlaster.Blast(saPath, indexPath);
+            
             int numPreloadedVariants =
-                V4Preloader.Preload(GRCh37.Chr1, _preloadData.Positions, _preloadData.PositionAlleleHashTable);
-            if (numPreloadedVariants != ExpectedPreloadedAlleles) throw new InvalidDataException();
+                V4Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.Positions, _preloadData.PositionAlleleHashTable);
+            if (numPreloadedVariants != Datasets.NumPedigreePreloadedVariants) throw new InvalidDataException();
             return numPreloadedVariants;
         }
 
         [Benchmark]
         public int XorFilter_5pct()
         {
-            int numPreloadedVariants = V5Preloader.Preload(GRCh37.Chr1, _preloadData.PositionAlleles,
+            (string saPath, string indexPath) = Version5.Utilities.SaPath.GetPaths(_saDir, "0.05",
+                Version5.Data.SaConstants.MaxCommonEntries, Version5.Data.SaConstants.MaxRareEntries);
+            FileCacheBlaster.Blast(saPath, indexPath);
+            
+            int numPreloadedVariants = V5Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.PositionAlleles,
                 _preloadData.PositionAlleleHashTable);
-            if (numPreloadedVariants != ExpectedPreloadedAlleles) throw new InvalidDataException();
+            if (numPreloadedVariants != Datasets.NumPedigreePreloadedVariants) throw new InvalidDataException();
+            return numPreloadedVariants;
+        }
+
+        [Benchmark]
+        public int XorFilter_7pct()
+        {
+            (string saPath, string indexPath) = Version5.Utilities.SaPath.GetPaths(_saDir, "0.05",
+                Version5.Data.SaConstants.MaxCommonEntries, Version5.Data.SaConstants.MaxRareEntries);
+            FileCacheBlaster.Blast(saPath, indexPath);
+            
+            int numPreloadedVariants = V5Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.PositionAlleles,
+                _preloadData.PositionAlleleHashTable);
+            if (numPreloadedVariants != Datasets.NumPedigreePreloadedVariants) throw new InvalidDataException();
+            return numPreloadedVariants;
+        }
+        
+        [Benchmark]
+        public int XorFilter_NoAI_5pct()
+        {
+            (string saPath, string indexPath) = Version6.Utilities.SaPath.GetPaths(_saDir, "0.05",
+                Version5.Data.SaConstants.MaxCommonEntries, Version5.Data.SaConstants.MaxRareEntries);
+            FileCacheBlaster.Blast(saPath, indexPath);
+            
+            int numPreloadedVariants = V6Preloader.Preload(GRCh37.Chr1, saPath, indexPath, _preloadData.PositionAlleles,
+                _preloadData.PositionAlleleHashTable);
+            if (numPreloadedVariants != Datasets.NumPedigreePreloadedVariants) throw new InvalidDataException();
             return numPreloadedVariants;
         }
     }

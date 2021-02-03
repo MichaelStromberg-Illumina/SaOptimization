@@ -8,11 +8,12 @@ namespace PreloadBaseline
     {
         private static void Main()
         {
-            var benchmark = new Benchmark();
+            (string saPath, string indexPath) = SaPath.GetPaths(SupplementaryAnnotation.Directory);
 
+            var benchmark = new Benchmark();
             VcfPreloadData preloadData =
                 Preloader.Preloader.GetPositions(Preloader.Preloader.GetLines(Datasets.PedigreeTsvPath));
-            int numPreloaded = Baseline.Preload(GRCh37.Chr1, preloadData.Positions);
+            int numPreloaded = Baseline.Preload(GRCh37.Chr1, saPath, indexPath, preloadData.Positions);
 
             Console.WriteLine();
             Console.WriteLine($"- {numPreloaded:N0} variants preloaded.");

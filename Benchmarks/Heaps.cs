@@ -8,8 +8,9 @@ using Version1.Utilities;
 namespace Benchmarks
 {
     [Orderer(SummaryOrderPolicy.FastestToSlowest)]
-    [RankColumn]
+    [RankColumn, MinColumn, MaxColumn]
     [MemoryDiagnoser]
+    [MaxRelativeError(0.005)]
     public class Heaps
     {
         private readonly WriteBlock[]          _shuffledBlocks;
@@ -45,111 +46,111 @@ namespace Benchmarks
 
             return currentIndex;
         }
-
-        [Benchmark]
-        public int Heap2()
-        {
-            int currentIndex = 0;
-            var heap         = new MinHeap2<WriteBlock>(_comparer.Compare);
         
-            foreach (WriteBlock block in _shuffledBlocks)
-            {
-                heap.Add(block);
-                while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
-                {
-                    heap.RemoveMin();
-                    currentIndex++;
-                }
-            }
-        
-            while (heap.Count > 0) heap.RemoveMin();
-        
-            return currentIndex;
-        }
-
-        [Benchmark]
-        public int Heap3()
-        {
-            int currentIndex = 0;
-            var heap         = new MinHeap3<WriteBlock>(_comparer.Compare);
-
-            foreach (WriteBlock block in _shuffledBlocks)
-            {
-                heap.Add(block);
-                while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
-                {
-                    heap.RemoveMin();
-                    currentIndex++;
-                }
-            }
-
-            while (heap.Count > 0) heap.RemoveMin();
-
-            return currentIndex;
-        }
-
-        [Benchmark]
-        public int LR_Localized()
-        {
-            int currentIndex = 0;
-            var heap         = new MinHeap_LR_Localized<WriteBlock>(_comparer.Compare);
-
-            foreach (WriteBlock block in _shuffledBlocks)
-            {
-                heap.Add(block);
-                while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
-                {
-                    heap.RemoveMin();
-                    currentIndex++;
-                }
-            }
-
-            while (heap.Count > 0) heap.RemoveMin();
-
-            return currentIndex;
-        }
-        
-        [Benchmark]
-        public int P_Localized()
-        {
-            int currentIndex = 0;
-            var heap         = new MinHeap_P_Localized<WriteBlock>(_comparer.Compare);
-
-            foreach (WriteBlock block in _shuffledBlocks)
-            {
-                heap.Add(block);
-                while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
-                {
-                    heap.RemoveMin();
-                    currentIndex++;
-                }
-            }
-
-            while (heap.Count > 0) heap.RemoveMin();
-
-            return currentIndex;
-        }
-        
-        [Benchmark]
-        public int All_Localized()
-        {
-            int currentIndex = 0;
-            var heap         = new MinHeap_All_Localized<WriteBlock>(_comparer.Compare);
-
-            foreach (WriteBlock block in _shuffledBlocks)
-            {
-                heap.Add(block);
-                while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
-                {
-                    heap.RemoveMin();
-                    currentIndex++;
-                }
-            }
-
-            while (heap.Count > 0) heap.RemoveMin();
-
-            return currentIndex;
-        }
+        // [Benchmark]
+        // public int Heap2()
+        // {
+        //     int currentIndex = 0;
+        //     var heap         = new MinHeap2<WriteBlock>(_comparer.Compare);
+        //
+        //     foreach (WriteBlock block in _shuffledBlocks)
+        //     {
+        //         heap.Add(block);
+        //         while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
+        //         {
+        //             heap.RemoveMin();
+        //             currentIndex++;
+        //         }
+        //     }
+        //
+        //     while (heap.Count > 0) heap.RemoveMin();
+        //
+        //     return currentIndex;
+        // }
+        //
+        // [Benchmark]
+        // public int Heap3()
+        // {
+        //     int currentIndex = 0;
+        //     var heap         = new MinHeap3<WriteBlock>(_comparer.Compare);
+        //
+        //     foreach (WriteBlock block in _shuffledBlocks)
+        //     {
+        //         heap.Add(block);
+        //         while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
+        //         {
+        //             heap.RemoveMin();
+        //             currentIndex++;
+        //         }
+        //     }
+        //
+        //     while (heap.Count > 0) heap.RemoveMin();
+        //
+        //     return currentIndex;
+        // }
+        //
+        // [Benchmark]
+        // public int LR_Localized()
+        // {
+        //     int currentIndex = 0;
+        //     var heap         = new MinHeap_LR_Localized<WriteBlock>(_comparer.Compare);
+        //
+        //     foreach (WriteBlock block in _shuffledBlocks)
+        //     {
+        //         heap.Add(block);
+        //         while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
+        //         {
+        //             heap.RemoveMin();
+        //             currentIndex++;
+        //         }
+        //     }
+        //
+        //     while (heap.Count > 0) heap.RemoveMin();
+        //
+        //     return currentIndex;
+        // }
+        //
+        // [Benchmark]
+        // public int P_Localized()
+        // {
+        //     int currentIndex = 0;
+        //     var heap         = new MinHeap_P_Localized<WriteBlock>(_comparer.Compare);
+        //
+        //     foreach (WriteBlock block in _shuffledBlocks)
+        //     {
+        //         heap.Add(block);
+        //         while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
+        //         {
+        //             heap.RemoveMin();
+        //             currentIndex++;
+        //         }
+        //     }
+        //
+        //     while (heap.Count > 0) heap.RemoveMin();
+        //
+        //     return currentIndex;
+        // }
+        //
+        // [Benchmark]
+        // public int All_Localized()
+        // {
+        //     int currentIndex = 0;
+        //     var heap         = new MinHeap_All_Localized<WriteBlock>(_comparer.Compare);
+        //
+        //     foreach (WriteBlock block in _shuffledBlocks)
+        //     {
+        //         heap.Add(block);
+        //         while (heap.Count > 0 && currentIndex == heap.Minimum.Index)
+        //         {
+        //             heap.RemoveMin();
+        //             currentIndex++;
+        //         }
+        //     }
+        //
+        //     while (heap.Count > 0) heap.RemoveMin();
+        //
+        //     return currentIndex;
+        // }
         
         [Benchmark]
         public int Array()

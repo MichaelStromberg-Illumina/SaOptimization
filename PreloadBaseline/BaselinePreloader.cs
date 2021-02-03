@@ -7,14 +7,11 @@ namespace PreloadBaseline
 {
     public static class Baseline
     {
-        public static int Preload(Chromosome chromosome, List<int> positions)
+        public static int Preload(Chromosome chromosome, string saPath, string indexPath, List<int> positions)
         {
-            const string dataPath  = @"E:\Data\Nirvana\Data\SupplementaryAnnotation\GRCh37_gnomAD\gnomAD_2.1.nsa";
-            const string indexPath = dataPath + ".idx";
-
             List<PreloadResult> results;
             
-            using (FileStream dataStream   = FileUtilities.GetReadStream(dataPath))
+            using (FileStream dataStream   = FileUtilities.GetReadStream(saPath))
             using (FileStream indexStream  = FileUtilities.GetReadStream(indexPath))
             {
                 var nsaReader = new NsaReader(dataStream, indexStream);

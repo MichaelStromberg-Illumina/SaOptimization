@@ -163,7 +163,10 @@ namespace NirvanaCommon
 
             foreach (Entry entry in _entries)
             {
-                if (entry.HashCode != 0) values.Add(entry.Value);
+                if (entry.HashCode == 0) continue;
+                // if (entry.Value == 1002626412615658) Console.WriteLine("LongHashTable: 14590-G-A (rare)");
+                // if (entry.Value == 1008605007091690) Console.WriteLine("LongHashTable: 14677-G-A (rare)");
+                values.Add(entry.Value);
             }
             
             return values.OrderBy(x => x).ToArray();
